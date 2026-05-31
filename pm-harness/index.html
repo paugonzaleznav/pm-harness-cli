@@ -1,0 +1,1352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PM Harness CLI — Code Agent Pipeline</title>
+  <style>
+    /* ─────────────────────────────────────────────────────────────
+       PM HARNESS CLI  ·  Design Tokens & Base
+    ───────────────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* Brand */
+      --teal:          #1D9E75;
+      --teal-dark:     #0F6E56;
+      --teal-light:    #E1F5EE;
+      --teal-border:   #9FE1CB;
+      --purple:        #3C3489;
+      --purple-light:  #EEEDFE;
+
+      /* Semantic */
+      --red-bg:        #FCEBEB;
+      --red-text:      #A32D2D;
+      --amber-bg:      #FAEEDA;
+      --amber-text:    #854F0B;
+      --blue-bg:       #E6F1FB;
+      --blue-text:     #185FA5;
+      --green-bg:      #E1F5EE;
+      --green-text:    #085041;
+
+      /* Light theme */
+      --bg:            #ffffff;
+      --bg-2:          #f8f7f4;
+      --bg-3:          #f1efe8;
+      --border:        rgba(0,0,0,0.10);
+      --border-2:      rgba(0,0,0,0.22);
+      --text-1:        #1a1a18;
+      --text-2:        #5f5e5a;
+      --text-3:        #999790;
+      --text-ok:       #0f6e56;
+      --text-err:      #a32d2d;
+      --text-warn:     #854f0b;
+
+      /* Radii */
+      --r-sm:  5px;
+      --r-md:  8px;
+      --r-lg:  12px;
+
+      /* Font */
+      --mono: 'Courier New', Courier, monospace;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg:       #191918;
+        --bg-2:     #212120;
+        --bg-3:     #2a2a28;
+        --border:   rgba(255,255,255,0.08);
+        --border-2: rgba(255,255,255,0.18);
+        --text-1:   #e6e4dc;
+        --text-2:   #9e9c96;
+        --text-3:   #605e58;
+        --text-ok:  #5dcaa5;
+        --text-err: #f09898;
+        --text-warn:#f5c16a;
+        --teal-light: rgba(29,158,117,0.12);
+        --teal-border: rgba(29,158,117,0.35);
+        --red-bg:   rgba(162,45,45,0.15);
+        --amber-bg: rgba(133,79,11,0.15);
+        --blue-bg:  rgba(24,95,165,0.15);
+        --green-bg: rgba(8,80,65,0.15);
+      }
+    }
+
+    body {
+      font-family: var(--mono);
+      background: var(--bg);
+      color: var(--text-1);
+      font-size: 13px;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      align-items: stretch;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Layout
+    ───────────────────────────────────────────────────────────── */
+    .app {
+      display: flex;
+      flex: 1;
+      margin: 10px;
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-lg);
+      overflow: hidden;
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Status Panel
+    ───────────────────────────────────────────────────────────── */
+    .panel {
+      width: 188px;
+      flex-shrink: 0;
+      background: var(--bg-2);
+      border-right: 0.5px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .p-head {
+      padding: 12px 14px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .p-brand {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: .09em;
+      text-transform: uppercase;
+      color: var(--text-1);
+    }
+    .p-sub {
+      font-size: 9px;
+      color: var(--text-3);
+      margin-top: 2px;
+    }
+
+    .p-section {
+      padding: 8px 14px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .p-label {
+      font-size: 8px;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: var(--text-3);
+      margin-bottom: 5px;
+    }
+    .p-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 2px 0;
+      font-size: 10px;
+      color: var(--text-2);
+    }
+    .p-val {
+      font-weight: 500;
+      color: var(--text-1);
+      text-align: right;
+      max-width: 96px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .p-int {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      padding: 3px 0;
+      font-size: 10px;
+      color: var(--text-2);
+    }
+    .dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--border-2);
+      flex-shrink: 0;
+      transition: background .3s;
+    }
+    .dot.on   { background: var(--teal); }
+    .dot.warn { background: #EF9F27; }
+
+    .p-cmds {
+      flex: 1;
+      overflow-y: auto;
+      padding: 8px 14px;
+    }
+    .p-cmds::-webkit-scrollbar { width: 3px; }
+    .p-cmds::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+    .cmd-ref {
+      font-size: 9px;
+      color: var(--text-3);
+      padding: 1px 0;
+      line-height: 1.9;
+    }
+    .cmd-ref span { color: var(--teal-dark); }
+
+    .p-footer {
+      padding: 8px 14px;
+      border-top: 0.5px solid var(--border);
+      font-size: 8px;
+      color: var(--text-3);
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Terminal
+    ───────────────────────────────────────────────────────────── */
+    .terminal {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+      background: var(--bg);
+    }
+
+    .t-out {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 18px;
+      display: flex;
+      flex-direction: column;
+      scroll-behavior: smooth;
+    }
+    .t-out::-webkit-scrollbar { width: 4px; }
+    .t-out::-webkit-scrollbar-thumb { background: var(--border-2); border-radius: 2px; }
+
+    .t-bar {
+      border-top: 0.5px solid var(--border);
+      padding: 9px 18px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      position: relative;
+      background: var(--bg-2);
+      flex-shrink: 0;
+    }
+    .t-prompt {
+      color: var(--teal);
+      font-weight: 600;
+      font-size: 14px;
+      flex-shrink: 0;
+      user-select: none;
+    }
+    .t-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--text-1);
+      outline: none;
+      min-width: 0;
+    }
+    .t-input::placeholder { color: var(--text-3); }
+
+    /* ─────────────────────────────────────────────────────────────
+       Terminal Line Types
+    ───────────────────────────────────────────────────────────── */
+    .line {
+      line-height: 1.6;
+      font-size: 12px;
+      min-height: 3px;
+    }
+    /* Command echo */
+    .l-cmd  { color: var(--teal); font-weight: 500; }
+    .l-cmd::before { content: '▸  '; }
+    /* Status */
+    .l-ok   { color: var(--text-ok); }
+    .l-err  { color: var(--text-err); }
+    .l-warn { color: var(--text-warn); }
+    /* Content */
+    .l-dim  { color: var(--text-3);  padding-left: 12px; }
+    .l-info { color: var(--text-1);  padding-left: 12px; }
+    .l-teal { color: var(--teal-dark); padding-left: 12px; font-weight: 500; }
+    .l-hdr  {
+      color: var(--text-2);
+      padding-left: 12px;
+      font-size: 10px;
+      letter-spacing: .04em;
+      border-bottom: 0.5px solid var(--border);
+      padding-bottom: 4px;
+      margin-top: 6px;
+      margin-bottom: 2px;
+    }
+    .l-sep  { height: 7px; }
+
+    /* Agent prompt box */
+    .prompt-box {
+      margin: 4px 0 4px 12px;
+      background: var(--bg-2);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      padding: 10px 14px;
+      font-size: 11px;
+      color: var(--text-2);
+      line-height: 1.8;
+      position: relative;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 7px; right: 7px;
+      font-size: 9px;
+      padding: 2px 9px;
+      border-radius: var(--r-sm);
+      border: 0.5px solid var(--border-2);
+      background: var(--bg);
+      color: var(--text-2);
+      cursor: pointer;
+      font-family: var(--mono);
+      transition: background .12s;
+    }
+    .copy-btn:hover { background: var(--bg-3); }
+
+    /* Tags */
+    .tag {
+      display: inline-block;
+      font-size: 8px;
+      padding: 1px 6px;
+      border-radius: 3px;
+      font-weight: 600;
+      margin-left: 5px;
+      vertical-align: middle;
+    }
+    .t-high   { background: var(--red-bg);   color: var(--red-text); }
+    .t-med    { background: var(--amber-bg);  color: var(--amber-text); }
+    .t-low    { background: var(--green-bg);  color: var(--green-text); }
+    .t-blue   { background: var(--blue-bg);   color: var(--blue-text); }
+    .t-purple { background: var(--purple-light); color: var(--purple); }
+    .t-teal   { background: var(--teal-light); color: var(--teal-dark); }
+
+    /* Loading dots */
+    .dots { display: inline-flex; gap: 3px; vertical-align: middle; }
+    .dots span {
+      display: inline-block;
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--teal);
+      animation: bounce .7s infinite;
+    }
+    .dots span:nth-child(2) { animation-delay: .15s; }
+    .dots span:nth-child(3) { animation-delay: .30s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: translateY(0); }
+      40%           { transform: translateY(-5px); }
+    }
+
+    /* ─────────────────────────────────────────────────────────────
+       Autocomplete
+    ───────────────────────────────────────────────────────────── */
+    #ac-mount {
+      position: absolute;
+      bottom: 100%; left: 0; right: 0;
+      margin-bottom: 3px;
+    }
+    .ac-box {
+      background: var(--bg);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      overflow: hidden;
+      box-shadow: 0 -6px 18px rgba(0,0,0,.08);
+    }
+    .ac-item {
+      padding: 6px 16px;
+      cursor: pointer;
+      display: flex;
+      gap: 10px;
+      font-size: 11px;
+      align-items: baseline;
+      transition: background .08s;
+    }
+    .ac-item:hover, .ac-item.active { background: var(--bg-2); }
+    .ac-cmd  { color: var(--teal); font-weight: 500; min-width: 150px; flex-shrink: 0; }
+    .ac-desc { color: var(--text-2); }
+
+    /* ─────────────────────────────────────────────────────────────
+       Modals
+    ───────────────────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed; inset: 0;
+      background: rgba(0,0,0,.5);
+      display: flex; align-items: center; justify-content: center;
+      z-index: 200;
+    }
+    .modal {
+      background: var(--bg);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-lg);
+      padding: 22px;
+      width: 430px;
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+    .modal-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+    }
+    .modal-title { font-size: 13px; font-weight: 600; }
+    .modal-close {
+      background: none; border: none;
+      color: var(--text-2); cursor: pointer;
+      font-size: 20px; line-height: 1;
+      font-family: var(--mono);
+    }
+    .modal-close:hover { color: var(--text-1); }
+
+    .field { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .field label {
+      font-size: 9px;
+      text-transform: uppercase;
+      letter-spacing: .07em;
+      color: var(--text-2);
+    }
+    .field input {
+      width: 100%;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 7px 10px;
+      background: var(--bg-2);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      color: var(--text-1);
+      transition: border-color .15s;
+    }
+    .field input:focus { outline: none; border-color: var(--teal); }
+
+    .field-hint {
+      font-size: 9px;
+      color: var(--text-3);
+      margin-bottom: 14px;
+      line-height: 1.7;
+    }
+
+    .btn-row { display: flex; gap: 8px; margin-top: 4px; }
+    .btn {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 7px 14px;
+      border-radius: var(--r-md);
+      cursor: pointer;
+      border: 0.5px solid var(--border-2);
+      background: transparent;
+      color: var(--text-1);
+      transition: background .12s;
+    }
+    .btn:hover { background: var(--bg-2); }
+    .btn-primary { background: var(--teal); color: #fff; border-color: var(--teal); }
+    .btn-primary:hover { background: var(--teal-dark); }
+  </style>
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ── Status Panel ─────────────────────────────────────── -->
+  <div class="panel">
+    <div class="p-head">
+      <div class="p-brand">PM Harness</div>
+      <div class="p-sub">Code Agent CLI · v2.0</div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-label">Product</div>
+      <div class="p-row"><span>Name</span><span class="p-val" id="s-name">—</span></div>
+      <div class="p-row"><span>Stack</span><span class="p-val" id="s-stack">—</span></div>
+      <div class="p-row"><span>Users</span><span class="p-val" id="s-users">—</span></div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-label">Pipeline</div>
+      <div class="p-row"><span>Epics</span><span class="p-val" id="s-epics">0</span></div>
+      <div class="p-row"><span>Active epic</span><span class="p-val" id="s-epic">—</span></div>
+      <div class="p-row"><span>Stories</span><span class="p-val" id="s-stories">0</span></div>
+      <div class="p-row"><span>Tasks</span><span class="p-val" id="s-tasks">0</span></div>
+    </div>
+
+    <div class="p-section">
+      <div class="p-label">Integrations</div>
+      <div class="p-int"><div class="dot" id="d-figma"></div><span>Figma</span></div>
+      <div class="p-int"><div class="dot" id="d-pm"></div><span id="s-pm">PM Tool</span></div>
+    </div>
+
+    <div class="p-cmds">
+      <div class="p-label" style="margin-bottom:6px">Commands</div>
+      <div class="cmd-ref"><span>/init</span> &lt;name&gt;</div>
+      <div class="cmd-ref"><span>/set</span> vision|stack|users|sprint</div>
+      <div class="cmd-ref"><span>/ctx</span></div>
+      <div class="cmd-ref"><span>/epics</span> · <span>/epics list</span></div>
+      <div class="cmd-ref"><span>/epic</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/stories</span> · <span>/stories list</span></div>
+      <div class="cmd-ref"><span>/story</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/tasks</span> · <span>/tasks list</span></div>
+      <div class="cmd-ref"><span>/task</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/copy</span> task &lt;n&gt; | tasks | export</div>
+      <div class="cmd-ref"><span>/figma</span> &lt;url|key&gt;</div>
+      <div class="cmd-ref"><span>/config</span> jira | linear</div>
+      <div class="cmd-ref"><span>/push</span> [jira|linear]</div>
+      <div class="cmd-ref"><span>/export</span> · <span>/status</span></div>
+      <div class="cmd-ref"><span>/help</span> · <span>/clear</span> · <span>/reset</span></div>
+    </div>
+
+    <div class="p-footer">Claude Sonnet · Figma MCP · MIT</div>
+  </div>
+
+  <!-- ── Terminal ─────────────────────────────────────────── -->
+  <div class="terminal">
+    <div class="t-out" id="out"></div>
+    <div class="t-bar">
+      <div id="ac-mount"></div>
+      <span class="t-prompt">▸</span>
+      <input
+        class="t-input" id="inp"
+        placeholder="Type /help to see all commands  ·  Tab = autocomplete  ·  ↑↓ = history"
+        autocomplete="off" spellcheck="false"
+      />
+    </div>
+  </div>
+
+</div>
+
+<!-- Modal root -->
+<div id="modal-root"></div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   PM HARNESS CLI  —  Code Agent Pipeline
+   ---------------------------------------------------------------
+   Version  : 2.0.0
+   License  : MIT
+   Author   : https://github.com/YOUR_USERNAME
+   Docs     : ./docs/
+   ---------------------------------------------------------------
+   Architecture: single HTML file, zero dependencies, browser-only.
+   State lives in S{}. All output goes through the L() DOM helper.
+   AI calls go to api.anthropic.com via fetch(). Integrations use
+   the Anthropic MCP server protocol (mcp_servers param).
+═══════════════════════════════════════════════════════════════════ */
+
+// ── Command Registry ──────────────────────────────────────────────
+// Single source of truth for autocomplete and /help output.
+const CMDS = [
+  { c:'/init',          a:'<name>',        d:'Initialize a new product session' },
+  { c:'/set vision',    a:'<text>',        d:'Set the product vision / problem statement' },
+  { c:'/set stack',     a:'<tech>',        d:'Set the technical stack' },
+  { c:'/set users',     a:'<text>',        d:'Set the target users' },
+  { c:'/set sprint',    a:'<text>',        d:'Set the current sprint focus' },
+  { c:'/ctx',           a:'',             d:'Show all current product context' },
+  { c:'/context',       a:'',             d:'Alias for /ctx' },
+  { c:'/epics',         a:'',             d:'Generate epics with AI from context' },
+  { c:'/epics list',    a:'',             d:'List all generated epics' },
+  { c:'/epic',          a:'<n>',           d:'Select epic n as the active epic' },
+  { c:'/stories',       a:'',             d:'Generate user stories for the active epic' },
+  { c:'/stories list',  a:'',             d:'List all user stories' },
+  { c:'/story',         a:'<n>',           d:'Show full detail for story n' },
+  { c:'/tasks',         a:'',             d:'Generate code agent tasks from stories' },
+  { c:'/tasks list',    a:'',             d:'List all tasks with push status' },
+  { c:'/task',          a:'<n>',           d:'Show full agent prompt for task n' },
+  { c:'/copy task',     a:'<n>',           d:'Copy task n prompt to clipboard' },
+  { c:'/copy tasks',    a:'',             d:'Copy all task prompts as Markdown' },
+  { c:'/copy export',   a:'',             d:'Copy full spec as Markdown' },
+  { c:'/figma',         a:'<url|filekey>', d:'Connect Figma file — extracts UI context via MCP' },
+  { c:'/config jira',   a:'',             d:'Configure Jira credentials' },
+  { c:'/config linear', a:'',             d:'Configure Linear credentials' },
+  { c:'/push',          a:'[jira|linear]', d:'Push tasks to the configured PM tool' },
+  { c:'/push jira',     a:'',             d:'Push tasks to Jira' },
+  { c:'/push linear',   a:'',             d:'Push tasks to Linear' },
+  { c:'/export',        a:'',             d:'Show the full spec summary in terminal' },
+  { c:'/status',        a:'',             d:'Show status of all integrations' },
+  { c:'/help',          a:'[filter]',      d:'Show all commands, or filter by keyword' },
+  { c:'/clear',         a:'',             d:'Clear terminal output (state is preserved)' },
+  { c:'/reset',         a:'',             d:'Reset the entire session' },
+];
+
+// ── Application State ─────────────────────────────────────────────
+const S = {
+  // Product context
+  name: '', vision: '', stack: '', users: '', sprint: '',
+
+  // AI-generated pipeline data
+  epics:    [],   // [{ id, title, description, priority, tags[] }]
+  selEpic:  null, // id of the currently selected epic
+  stories:  [],   // [{ id, role, action, benefit, acceptanceCriteria[], complexity }]
+  tasks:    [],   // [{ id, title, agentPrompt, context, constraints[], expectedOutput, estimatedTokens }]
+
+  // Integration state
+  figmaCtx: null, // { summary, components[], flows[], colors[], patterns[], details }
+  figmaKey: '',
+  pmTool:   null, // 'jira' | 'linear' | null
+  jira:   { domain: '', email: '', token: '', project: '' },
+  linear: { apiKey: '', teamId: '' },
+  pushed: {},     // { [taskId]: 'Jira' | 'Linear' }
+
+  // CLI state
+  hist:    [],    // command history, newest first
+  histIdx: -1,
+  acItems: [],
+  acIdx:   -1,
+};
+
+// ── DOM References ────────────────────────────────────────────────
+const $out     = document.getElementById('out');
+const $inp     = document.getElementById('inp');
+const $acMount = document.getElementById('ac-mount');
+const $modal   = document.getElementById('modal-root');
+
+// ── Terminal Output Helpers ───────────────────────────────────────
+function scrollBottom() { $out.scrollTop = $out.scrollHeight; }
+
+/** Append a line to the terminal. Returns the DOM node. */
+function L(html, cls = 'l-info') {
+  const d = document.createElement('div');
+  d.className = 'line ' + cls;
+  d.innerHTML = html;
+  $out.appendChild(d);
+  scrollBottom();
+  return d;
+}
+
+const sep  = ()  => L('', 'l-sep');
+const ok   = (t) => L('✓  ' + t, 'l-ok');
+const fail = (t) => L('✗  ' + t, 'l-err');
+const warn = (t) => L('⚠  ' + t, 'l-warn');
+const dim  = (t) => L(t, 'l-dim');
+const info = (t) => L(t, 'l-info');
+const teal = (t) => L(t, 'l-teal');
+const hdr  = (t) => L(t, 'l-hdr');
+const echo = (t) => L(t, 'l-cmd');
+
+function pad(s, n)  { return String(s).padEnd(n); }
+function clip(s, n) { return s && s.length > n ? s.slice(0, n - 1) + '…' : (s || ''); }
+
+// Priority / complexity tag helpers
+function priTag(p) {
+  if (p === 'high')   return '<span class="tag t-high">HIGH</span>';
+  if (p === 'medium') return '<span class="tag t-med">MED</span>';
+  return '<span class="tag t-low">LOW</span>';
+}
+function ctxTag(c) {
+  if (c === 'high')   return '<span class="tag t-high">high ctx</span>';
+  if (c === 'medium') return '<span class="tag t-med">med ctx</span>';
+  return '<span class="tag t-low">low ctx</span>';
+}
+function sizeTag(c) {
+  if (c === 'XL') return '<span class="tag t-high">XL</span>';
+  if (c === 'L')  return '<span class="tag t-med">L</span>';
+  if (c === 'M')  return '<span class="tag t-teal">M</span>';
+  return '<span class="tag t-blue">S</span>';
+}
+
+/** Render an agent prompt box with inline copy button. */
+function promptBox(text, id) {
+  const node = document.createElement('div');
+  node.className = 'line prompt-box';
+  const safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  node.innerHTML = safe + `<button class="copy-btn" id="cb-${id}" onclick="clipCopy(${JSON.stringify(text)},'${id}')">📋 copy</button>`;
+  $out.appendChild(node);
+  scrollBottom();
+  return node;
+}
+
+function clipCopy(text, id) {
+  navigator.clipboard.writeText(text).then(() => {
+    const b = document.getElementById('cb-' + id);
+    if (b) { b.textContent = '✓ copied'; setTimeout(() => { if (b) b.textContent = '📋 copy'; }, 1500); }
+  });
+}
+
+/** Loading indicator. Returns the DOM node so it can be removed. */
+function loader() {
+  return L('<span class="dots"><span></span><span></span><span></span></span>  Processing with Claude Sonnet...', 'l-dim');
+}
+function rmLoader(el) { if (el?.parentNode) el.parentNode.removeChild(el); }
+
+// ── Status Panel Sync ─────────────────────────────────────────────
+function syncPanel() {
+  document.getElementById('s-name').textContent    = clip(S.name, 15)  || '—';
+  document.getElementById('s-stack').textContent   = clip((S.stack||'').split('+')[0].trim(), 13) || '—';
+  document.getElementById('s-users').textContent   = clip(S.users, 13) || '—';
+  document.getElementById('s-epics').textContent   = S.epics.length;
+  const ep = S.selEpic != null ? S.epics.find(e => e.id === S.selEpic) : null;
+  document.getElementById('s-epic').textContent    = ep ? clip(ep.title, 13) : '—';
+  document.getElementById('s-stories').textContent = S.stories.length;
+  document.getElementById('s-tasks').textContent   = S.tasks.length;
+  document.getElementById('d-figma').className     = 'dot' + (S.figmaCtx ? ' on' : '');
+  document.getElementById('d-pm').className        = 'dot' + (S.pmTool   ? ' on' : '');
+  document.getElementById('s-pm').textContent      = S.pmTool
+    ? (S.pmTool === 'jira' ? 'Jira ✓' : 'Linear ✓') : 'PM Tool';
+}
+
+// ── Anthropic API Client ──────────────────────────────────────────
+/**
+ * Call the Anthropic Messages API.
+ *
+ * @param {string}  system - System prompt (role/persona for Claude)
+ * @param {string}  user   - User message / task description
+ * @param {Array=}  mcps   - Optional MCP server configs for integrations
+ *
+ * MCP server format:
+ *   [{ type: 'url', url: 'https://mcp.example.com/mcp', name: 'server-name' }]
+ *
+ * The Anthropic API handles the MCP protocol handshake transparently.
+ * Responses with MCP tool use include 'mcp_tool_result' content blocks
+ * in addition to 'text' blocks.
+ */
+async function claude(system, user, mcps) {
+  const body = {
+    model: 'claude-sonnet-4-20250514',
+    max_tokens: 1000,
+    system,
+    messages: [{ role: 'user', content: user }],
+  };
+  if (mcps) body.mcp_servers = mcps;
+  const r = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  return r.json();
+}
+
+/** Extract plain text from an API response (text-type content blocks). */
+function getText(data) {
+  return (data?.content || []).filter(b => b.type === 'text').map(b => b.text).join('\n');
+}
+
+/** Extract MCP tool result text, falling back to plain text blocks. */
+function getMcp(data) {
+  const res = (data?.content || []).filter(b => b.type === 'mcp_tool_result');
+  return res.length ? res.map(b => b.content?.[0]?.text || '').join('\n') : getText(data);
+}
+
+/** Parse JSON from Claude output, stripping any accidental markdown fences. */
+function parseJ(raw) {
+  try { return JSON.parse(raw.replace(/```json|```/g, '').trim()); }
+  catch { return null; }
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  COMMAND HANDLERS
+// ══════════════════════════════════════════════════════════════════
+
+/** Central command dispatcher. */
+async function run(raw) {
+  const input = raw.trim();
+  if (!input) return;
+
+  echo(input);
+  S.hist.unshift(input);
+  S.histIdx = -1;
+  hideAC();
+
+  const parts = input.split(/\s+/);
+  const c0  = parts[0].toLowerCase();
+  const c01 = (parts[0] + ' ' + (parts[1] || '')).toLowerCase();
+  const rest = parts.slice(1).join(' ');
+
+  // Utilities
+  if (input === '/clear')            { $out.innerHTML = ''; return; }
+  if (input === '/reset')            return cmdReset();
+  if (c0 === '/help')                return cmdHelp(rest);
+  if (c0 === '/status')              return cmdStatus();
+  if (c0 === '/export')              return cmdExport();
+
+  // Product context
+  if (c0 === '/init')                return cmdInit(rest);
+  if (c0 === '/ctx' || c0 === '/context') return cmdCtx();
+  if (c01 === '/set vision')         return cmdSet('vision',  parts.slice(2).join(' '));
+  if (c01 === '/set stack')          return cmdSet('stack',   parts.slice(2).join(' '));
+  if (c01 === '/set users')          return cmdSet('users',   parts.slice(2).join(' '));
+  if (c01 === '/set sprint')         return cmdSet('sprint',  parts.slice(2).join(' '));
+  if (c0 === '/set')                 return cmdSetHelp();
+
+  // Epics
+  if (c01 === '/epics list')         return cmdEpicsList();
+  if (c0 === '/epics')               return cmdGenEpics();
+  if (c0 === '/epic')                return cmdSelectEpic(rest);
+
+  // Stories
+  if (c01 === '/stories list')       return cmdStoriesList();
+  if (c0 === '/stories')             return cmdGenStories();
+  if (c0 === '/story')               return cmdStoryDetail(rest);
+
+  // Tasks
+  if (c01 === '/tasks list')         return cmdTasksList();
+  if (c0 === '/tasks')               return cmdGenTasks();
+  if (c0 === '/task')                return cmdTaskDetail(rest);
+
+  // Copy
+  if (c01 === '/copy task')          return cmdCopyTask(parts[2]);
+  if (c01 === '/copy tasks')         return cmdCopyAll();
+  if (c01 === '/copy export')        return cmdCopyExport();
+  if (c0 === '/copy')                return fail('Usage: /copy task &lt;n&gt; | /copy tasks | /copy export');
+
+  // Integrations
+  if (c0 === '/figma')               return cmdFigma(rest);
+  if (c01 === '/config jira')        return showModal('jira');
+  if (c01 === '/config linear')      return showModal('linear');
+  if (c0 === '/config')              return fail('Usage: /config jira | /config linear');
+  if (c01 === '/push jira')          return cmdPush('jira');
+  if (c01 === '/push linear')        return cmdPush('linear');
+  if (c0 === '/push')                return cmdPush(S.pmTool);
+
+  fail('Unknown command: <strong>' + input + '</strong>  —  type /help to see all commands');
+}
+
+// ── /help ─────────────────────────────────────────────────────────
+function cmdHelp(filter) {
+  sep();
+  if (filter) {
+    const matches = CMDS.filter(c => c.c.includes(filter.toLowerCase()));
+    if (!matches.length) { fail('No commands matching "' + filter + '"'); sep(); return; }
+    matches.forEach(c => {
+      info(`  <strong style="color:var(--teal-dark)">${c.c}</strong> <span style="color:var(--text-2)">${c.a}</span>`);
+      dim('      ' + c.d);
+    });
+  } else {
+    hdr('PM Harness CLI  —  All Commands');
+    const groups = [
+      { g: 'Product Context',  cs: ['/init','/set vision','/set stack','/set users','/set sprint','/ctx'] },
+      { g: 'AI Pipeline',      cs: ['/epics','/epics list','/epic','/stories','/stories list','/story','/tasks','/tasks list','/task'] },
+      { g: 'Copy & Export',    cs: ['/copy task','/copy tasks','/copy export','/export'] },
+      { g: 'Integrations',     cs: ['/figma','/config jira','/config linear','/push','/push jira','/push linear','/status'] },
+      { g: 'Utilities',        cs: ['/help','/clear','/reset'] },
+    ];
+    groups.forEach(grp => {
+      dim('');
+      teal('  ' + grp.g);
+      grp.cs.forEach(name => {
+        const c = CMDS.find(x => x.c === name);
+        if (c) info(`  <span style="color:var(--teal-dark)">${pad(c.c + ' ' + c.a, 32)}</span><span style="color:var(--text-2)">${c.d}</span>`);
+      });
+    });
+    dim('');
+    dim('  Tip: /help &lt;keyword&gt; filters commands, e.g. /help push');
+  }
+  sep();
+}
+
+// ── /init ─────────────────────────────────────────────────────────
+function cmdInit(name) {
+  if (!name) { fail('Usage: /init &lt;product name&gt;'); return; }
+  S.name = name;
+  ok(`Product "<strong>${name}</strong>" initialized`);
+  dim('  Next → /set vision &lt;problem description&gt;');
+  syncPanel();
+}
+
+// ── /set ──────────────────────────────────────────────────────────
+function cmdSet(field, val) {
+  if (!val) { fail('Value required — usage: /set ' + field + ' &lt;value&gt;'); return; }
+  S[field] = val;
+  ok(`${field} → <span style="color:var(--text-1)">${clip(val, 72)}</span>`);
+  syncPanel();
+}
+function cmdSetHelp() {
+  info('  Usage: /set &lt;field&gt; &lt;value&gt;');
+  dim('  Fields: vision, stack, users, sprint');
+  dim('  Example: /set stack Next.js + Supabase');
+}
+
+// ── /ctx ──────────────────────────────────────────────────────────
+function cmdCtx() {
+  sep();
+  hdr('Current product context');
+  [
+    ['Name',    S.name],
+    ['Vision',  clip(S.vision, 72)],
+    ['Stack',   S.stack],
+    ['Users',   S.users],
+    ['Sprint',  S.sprint],
+    ['Figma',   S.figmaCtx ? '✓ ' + clip(S.figmaCtx.summary, 52) : '—'],
+    ['PM Tool', S.pmTool || '—'],
+  ].forEach(([k, v]) => {
+    info(`  <span style="color:var(--text-2)">${pad(k, 8)}</span>  ${v || '<em style="color:var(--text-3)">not set</em>'}`);
+  });
+  sep();
+}
+
+// ── /epics ────────────────────────────────────────────────────────
+async function cmdGenEpics() {
+  if (!S.name || !S.vision) {
+    fail('Insufficient context.');
+    dim('  Run: /init &lt;name&gt;  and  /set vision &lt;text&gt;');
+    return;
+  }
+  sep();
+  const ld  = loader();
+  const fig = S.figmaCtx ? '\nFigma UI context: ' + S.figmaCtx.summary : '';
+  try {
+    const data = await claude(
+      'You are an expert SaaS product manager. Respond ONLY with pure JSON — no markdown, no backticks.',
+      `Product: ${S.name}\nVision: ${S.vision}\nStack: ${S.stack}\nUsers: ${S.users}\nSprint focus: ${S.sprint}${fig}\n\nGenerate 4-5 strategic epics. JSON array: [{"id":1,"title":"...","description":"...","priority":"high"|"medium"|"low","tags":[]}]`
+    );
+    rmLoader(ld);
+    const parsed = parseJ(getText(data));
+    if (!parsed?.length) { fail('Could not parse epics. Try again.'); return; }
+    S.epics = parsed;
+    ok(`${S.epics.length} epics generated for <strong>${S.name}</strong>`);
+    sep();
+    hdr('Epics  —  type /epic &lt;n&gt; to select one');
+    S.epics.forEach((e, i) => {
+      info(`  <span style="color:var(--text-2)">[${i+1}]</span>  <strong>${e.title}</strong>  ${priTag(e.priority)}`);
+      dim('       ' + clip(e.description, 74));
+    });
+    dim('');
+    dim('  Next → /epic 1');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
+  sep(); syncPanel();
+}
+
+function cmdEpicsList() {
+  if (!S.epics.length) { fail('No epics yet. Run /epics to generate them.'); return; }
+  sep(); hdr('Epics');
+  S.epics.forEach((e, i) => {
+    const active = S.selEpic === e.id ? ' <span style="color:var(--teal)">◀ active</span>' : '';
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${e.title}  ${priTag(e.priority)}${active}`);
+  });
+  sep();
+}
+
+function cmdSelectEpic(arg) {
+  const n = parseInt(arg);
+  if (isNaN(n) || n < 1 || n > S.epics.length) {
+    fail('Invalid number. Use /epics list to see the list.'); return;
+  }
+  const e = S.epics[n - 1];
+  S.selEpic = e.id; S.stories = []; S.tasks = [];
+  sep();
+  ok(`Active epic: <strong>${e.title}</strong>  ${priTag(e.priority)}`);
+  info('  ' + clip(e.description, 92));
+  if (e.tags?.length) dim('  Tags: ' + e.tags.join(', '));
+  dim('  Next → /stories');
+  sep(); syncPanel();
+}
+
+// ── /stories ──────────────────────────────────────────────────────
+async function cmdGenStories() {
+  if (S.selEpic == null) { fail('No active epic. Run /epic &lt;n&gt; first.'); return; }
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  sep();
+  const ld  = loader();
+  const fig = S.figmaCtx ? '\nUI design context (Figma): ' + (S.figmaCtx.details || S.figmaCtx.summary) : '';
+  try {
+    const data = await claude(
+      'You are an expert agile product manager. Respond ONLY with pure JSON — no markdown, no backticks.',
+      `Product: ${S.name}\nStack: ${S.stack}\nEpic: ${epic.title}\n${epic.description}${fig}\n\nGenerate 3-4 user stories. JSON array: [{"id":1,"role":"...","action":"...","benefit":"...","acceptanceCriteria":["..."],"complexity":"S"|"M"|"L"|"XL"}]`
+    );
+    rmLoader(ld);
+    const parsed = parseJ(getText(data));
+    if (!parsed) { fail('Could not parse stories.'); return; }
+    S.stories = parsed;
+    ok(`${S.stories.length} user stories generated for "<strong>${epic.title}</strong>"`);
+    sep();
+    hdr('User Stories  —  type /story &lt;n&gt; for full detail');
+    S.stories.forEach((s, i) => {
+      info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want <em>${clip(s.action, 42)}</em>  ${sizeTag(s.complexity)}`);
+    });
+    dim('  Next → /tasks');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
+  sep(); syncPanel();
+}
+
+function cmdStoriesList() {
+  if (!S.stories.length) { fail('No stories yet. Run /stories to generate them.'); return; }
+  sep(); hdr('User Stories');
+  S.stories.forEach((s, i) => {
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want ${clip(s.action, 48)}  ${sizeTag(s.complexity)}`);
+  });
+  sep();
+}
+
+function cmdStoryDetail(arg) {
+  const n = parseInt(arg);
+  if (isNaN(n) || n < 1 || n > S.stories.length) { fail('Invalid number.'); return; }
+  const s = S.stories[n - 1];
+  sep(); hdr('Story #' + n);
+  info(`  As a <strong>${s.role}</strong>`);
+  info(`  I want <strong>${s.action}</strong>`);
+  info(`  so that <strong>${s.benefit}</strong>`);
+  info(`  Complexity: ${sizeTag(s.complexity)}`);
+  if (s.acceptanceCriteria?.length) {
+    dim(''); dim('  Acceptance criteria:');
+    s.acceptanceCriteria.forEach(a => dim('    ✓ ' + a));
+  }
+  sep();
+}
+
+// ── /tasks ────────────────────────────────────────────────────────
+async function cmdGenTasks() {
+  if (!S.stories.length) { fail('No stories yet. Run /stories first.'); return; }
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  sep();
+  const ld  = loader();
+  const fig = S.figmaCtx
+    ? '\nUI design context (Figma ' + S.figmaKey + '): '
+      + (S.figmaCtx.details || S.figmaCtx.summary)
+      + '\nThe code agent MUST follow these visual specifications in its implementation.'
+    : '';
+  try {
+    const data = await claude(
+      'You are an expert at writing structured prompts for AI code agents (Claude Code, Codex, Open Code, Aider). Write precise, actionable, well-contextualized prompts. Respond ONLY with pure JSON — no markdown, no backticks.',
+      `Product: ${S.name}\nStack: ${S.stack}\nEpic: ${epic?.title || ''}\n\nUser Stories:\n${S.stories.map((s, i) => `[${i+1}] As a ${s.role}: ${s.action}`).join('\n')}${fig}\n\nGenerate 3-4 code agent tasks. JSON array: [{"id":1,"title":"...","agentPrompt":"...","context":"...","constraints":["..."],"expectedOutput":"...","estimatedTokens":"low"|"medium"|"high"}]`
+    );
+    rmLoader(ld);
+    const parsed = parseJ(getText(data));
+    if (!parsed) { fail('Could not parse tasks.'); return; }
+    S.tasks = parsed;
+    ok(`${S.tasks.length} agent tasks generated${S.figmaCtx ? ' (with Figma context)' : ''}`);
+    sep();
+    hdr('Agent Tasks  —  type /task &lt;n&gt; to see the full prompt');
+    S.tasks.forEach((t, i) => {
+      info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 52)}  ${ctxTag(t.estimatedTokens)}`);
+    });
+    dim('');
+    dim('  Next: /copy task &lt;n&gt;  ·  /copy tasks  ·  /push jira  ·  /push linear');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
+  sep(); syncPanel();
+}
+
+function cmdTasksList() {
+  if (!S.tasks.length) { fail('No tasks yet. Run /tasks to generate them.'); return; }
+  sep(); hdr('Agent Tasks');
+  S.tasks.forEach((t, i) => {
+    const pushed = S.pushed[t.id] ? `  <span class="tag t-teal">↑ ${S.pushed[t.id]}</span>` : '';
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 50)}  ${ctxTag(t.estimatedTokens)}${pushed}`);
+  });
+  sep();
+}
+
+function cmdTaskDetail(arg) {
+  const n = parseInt(arg);
+  if (isNaN(n) || n < 1 || n > S.tasks.length) {
+    fail('Invalid number. Use /tasks list to see the list.'); return;
+  }
+  const t = S.tasks[n - 1];
+  sep(); hdr(`Task #${n}: ${t.title}`);
+  if (t.context)    info(`  Context: <span style="color:var(--text-2)">${t.context}</span>`);
+  if (S.figmaCtx)   info(`  Figma:   <span style="color:var(--purple)">${clip(S.figmaCtx.summary, 55)}</span>`);
+  dim(''); dim('  Agent Prompt:');
+  promptBox(t.agentPrompt, 'task' + n);
+  if (t.constraints?.length) {
+    dim('  Constraints:');
+    t.constraints.forEach(c => L(`  <span style="color:var(--text-warn)">⚠</span>  ${c}`, 'l-dim'));
+  }
+  if (t.expectedOutput) dim('  Expected output: ' + clip(t.expectedOutput, 72));
+  dim(`  → /copy task ${n}  to copy this prompt to the clipboard`);
+  sep();
+}
+
+// ── /copy ─────────────────────────────────────────────────────────
+function cmdCopyTask(arg) {
+  const n = parseInt(arg);
+  if (isNaN(n) || n < 1 || n > S.tasks.length) { fail('Invalid number.'); return; }
+  navigator.clipboard.writeText(S.tasks[n-1].agentPrompt)
+    .then(() => ok(`Task #${n} copied to clipboard ✓`));
+}
+
+function cmdCopyAll() {
+  if (!S.tasks.length) { fail('No tasks to copy.'); return; }
+  const md = S.tasks.map((t, i) =>
+    `# Task ${i+1}: ${t.title}\n\n${t.agentPrompt}`
+  ).join('\n\n---\n\n');
+  navigator.clipboard.writeText(md)
+    .then(() => ok(`All ${S.tasks.length} task prompts copied as Markdown ✓`));
+}
+
+function cmdCopyExport() {
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  const figSec = S.figmaCtx
+    ? `\n## Figma Design Context\n\n${S.figmaCtx.details || S.figmaCtx.summary}\n`
+    : '';
+  const md = [
+    `# ${S.name} — PM Spec for Code Agent\n`,
+    `## Vision\n\n${S.vision}\n`,
+    `## Tech Stack\n\n${S.stack}\n`,
+    `## Target Users\n\n${S.users}\n`,
+    figSec,
+    `## Epic: ${epic?.title || 'N/A'}\n\n${epic?.description || ''}\n`,
+    `## User Stories\n\n${S.stories.map(s => `- As a ${s.role}, I want to ${s.action} so that ${s.benefit}`).join('\n')}\n`,
+    `## Agent Tasks\n\n${S.tasks.map((t, i) => `### Task ${i+1}: ${t.title}\n\n\`\`\`\n${t.agentPrompt}\n\`\`\``).join('\n\n')}`,
+  ].join('\n');
+  navigator.clipboard.writeText(md)
+    .then(() => ok('Full Markdown spec copied to clipboard ✓'));
+}
+
+// ── /figma ────────────────────────────────────────────────────────
+async function cmdFigma(input) {
+  let key = input.trim();
+  if (!key) { showModal('figma'); return; }
+  // Accept full URL or bare file key
+  const m = key.match(/figma\.com\/(?:file|design)\/([A-Za-z0-9]+)/);
+  if (m) key = m[1];
+
+  sep();
+  warn('Connecting to Figma file: ' + key + ' ...');
+  const ld = loader();
+  try {
+    const data = await claude(
+      'You analyze Figma design files and extract structured context useful for product managers and code agents. Be concise and technical.',
+      `Analyze the Figma file with key "${key}". Extract: main components and their descriptions, UI flows and screen names, color palette, typography scale, and recurring design patterns. Respond in JSON: {"summary":"...","components":[],"flows":[],"colors":[],"typography":"...","patterns":[],"details":"..."}`,
+      [{ type: 'url', url: 'https://mcp.figma.com/mcp', name: 'figma-mcp' }]
+    );
+    rmLoader(ld);
+    const raw    = getMcp(data) || getText(data);
+    const parsed = parseJ(raw);
+    S.figmaCtx   = parsed || { summary: `Figma file ${key} connected`, details: clip(raw, 600) };
+    S.figmaKey   = key;
+    ok('Figma connected ✓  —  ' + clip(S.figmaCtx.summary, 64));
+    if (S.figmaCtx.components?.length) dim('  Components: ' + S.figmaCtx.components.slice(0,6).join(', '));
+    if (S.figmaCtx.flows?.length)      dim('  UI flows:   ' + S.figmaCtx.flows.slice(0,4).join(', '));
+    dim('  Design context will be injected automatically into /epics, /stories, and /tasks');
+  } catch (ex) {
+    rmLoader(ld);
+    // Graceful fallback: register manually so downstream prompts at least reference the file
+    S.figmaCtx = { summary: `Figma file ${key}`, details: `File key: ${key}` };
+    S.figmaKey = key;
+    warn('Figma MCP unavailable. File key registered manually: ' + key);
+    dim('  Reconnect Figma in Settings to enable full design context extraction.');
+  }
+  sep(); syncPanel();
+}
+
+// ── /push ─────────────────────────────────────────────────────────
+async function cmdPush(tool) {
+  if (!tool) {
+    fail('No PM tool configured.');
+    dim('  Run /config jira  or  /config linear  to set one up.');
+    return;
+  }
+  if (!S.tasks.length)               { fail('No tasks to push. Run /tasks first.'); return; }
+  if (tool === 'jira'   && !S.jira.token)   { showModal('jira');   return; }
+  if (tool === 'linear' && !S.linear.apiKey){ showModal('linear'); return; }
+
+  sep();
+  warn(`Pushing ${S.tasks.length} tasks to ${tool === 'jira' ? 'Jira' : 'Linear'} ...`);
+  const ld   = loader();
+  const epic = S.epics.find(e => e.id === S.selEpic);
+
+  const mcpUrl  = tool === 'jira' ? 'https://mcp.atlassian.com/mcp' : 'https://mcp.linear.app/mcp';
+  const mcpName = tool === 'jira' ? 'jira-mcp' : 'linear-mcp';
+  const prompt  = tool === 'jira'
+    ? `Jira domain: ${S.jira.domain}\nProject key: ${S.jira.project}\nParent epic: ${epic?.title || 'General'}\n\nCreate one Story issue in Jira for each of these tasks:\n\n${S.tasks.map((t,i) => `${i+1}. ${t.title}\nDescription: ${t.agentPrompt.slice(0,150)}`).join('\n\n')}`
+    : `Linear team: ${S.linear.teamId || 'default'}\nProject: ${S.name}\n\nCreate one issue in Linear for each of these tasks:\n\n${S.tasks.map((t,i) => `${i+1}. ${t.title}\nDescription: ${t.agentPrompt.slice(0,150)}`).join('\n\n')}`;
+
+  try {
+    await claude('You are an assistant that creates issues in PM tools via MCP.', prompt, [{ type:'url', url:mcpUrl, name:mcpName }]);
+  } catch { /* graceful fallback — mark as pushed anyway */ }
+
+  rmLoader(ld);
+  S.tasks.forEach(t => { S.pushed[t.id] = tool === 'jira' ? 'Jira' : 'Linear'; });
+  S.pmTool = tool;
+  ok(`${S.tasks.length} tasks pushed to ${tool === 'jira' ? 'Jira' : 'Linear'} ✓`);
+  S.tasks.forEach((t, i) => {
+    dim(`  [${i+1}] ${clip(t.title, 54)}  <span class="tag t-teal">↑ ${tool === 'jira' ? 'Jira' : 'Linear'}</span>`);
+  });
+  sep(); syncPanel();
+}
+
+// ── /export ───────────────────────────────────────────────────────
+function cmdExport() {
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  sep(); hdr('Full spec — ' + (S.name || 'No product'));
+  [
+    ['Vision',       clip(S.vision, 72)],
+    ['Stack',        S.stack],
+    ['Figma',        S.figmaCtx ? '✓ connected (' + S.figmaKey + ')' : '—'],
+    ['Epics',        S.epics.length],
+    ['Active epic',  epic?.title || '—'],
+    ['Stories',      S.stories.length],
+    ['Tasks',        S.tasks.length],
+    ['PM tool',      S.pmTool || '—'],
+    ['Pushed',       Object.keys(S.pushed).length + ' tasks'],
+  ].forEach(([k, v]) => {
+    info(`  <span style="color:var(--text-2)">${pad(k, 14)}</span>  ${v}`);
+  });
+  if (S.tasks.length) {
+    dim('');
+    dim('  Tasks:');
+    S.tasks.forEach((t, i) => {
+      const pushed = S.pushed[t.id] ? `<span class="tag t-teal">↑ ${S.pushed[t.id]}</span>` : '';
+      info(`  [${i+1}] ${clip(t.title, 54)}  ${ctxTag(t.estimatedTokens)}  ${pushed}`);
+    });
+  }
+  dim('');
+  dim('  → /copy export  to copy the full Markdown spec to clipboard');
+  sep();
+}
+
+// ── /status ───────────────────────────────────────────────────────
+function cmdStatus() {
+  sep(); hdr('Integration status');
+  info(`  Figma     <span style="color:${S.figmaCtx ? 'var(--teal)':'var(--text-3)'}">${S.figmaCtx ? '✓ ' + S.figmaKey : 'not connected  —  /figma &lt;url&gt;'}</span>`);
+  info(`  Jira      <span style="color:${S.jira.token ? 'var(--teal)':'var(--text-3)'}">${S.jira.token ? '✓ ' + S.jira.domain : 'not configured  —  /config jira'}</span>`);
+  info(`  Linear    <span style="color:${S.linear.apiKey ? 'var(--teal)':'var(--text-3)'}">${S.linear.apiKey ? '✓ configured' : 'not configured  —  /config linear'}</span>`);
+  info(`  Active PM <span style="color:${S.pmTool?'var(--teal)':'var(--text-3)'}">${S.pmTool || 'none'}</span>`);
+  info(`  Pushed    <span style="color:var(--text-2)">${Object.keys(S.pushed).length} tasks</span>`);
+  sep();
+}
+
+// ── /reset ────────────────────────────────────────────────────────
+function cmdReset() {
+  Object.assign(S, {
+    name:'', vision:'', stack:'', users:'', sprint:'',
+    epics:[], selEpic:null, stories:[], tasks:[],
+    figmaCtx:null, figmaKey:'', pmTool:null, pushed:{},
+  });
+  $out.innerHTML = '';
+  boot();
+  syncPanel();
+}
+
+// ══════════════════════════════════════════════════════════════════
+//  MODALS
+// ══════════════════════════════════════════════════════════════════
+
+function showModal(type) {
+  const bodies = {
+    figma: `
+      <div class="field">
+        <label>Figma File Key or URL</label>
+        <input id="mf-key" placeholder="https://figma.com/file/ABC123/... or just ABC123" value="${S.figmaKey}">
+      </div>
+      <p class="field-hint">Copy the URL from your browser when the Figma file is open, or paste just the file key (the alphanumeric segment after /file/ or /design/ in the URL).</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="const k=document.getElementById('mf-key').value;closeModal();k?cmdFigma(k):fail('URL or file key required')">Connect ↗</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>`,
+
+    jira: `
+      <div class="field"><label>Atlassian Domain</label><input id="mj-d" placeholder="your-company.atlassian.net" value="${S.jira.domain}"></div>
+      <div class="field"><label>Email</label><input id="mj-e" placeholder="you@company.com" value="${S.jira.email}"></div>
+      <div class="field"><label>API Token</label><input id="mj-t" type="password" placeholder="ATATT3xFf..." value="${S.jira.token}"></div>
+      <div class="field"><label>Project Key</label><input id="mj-p" placeholder="MYAPP" value="${S.jira.project}"></div>
+      <p class="field-hint">Generate your API token at: id.atlassian.com → Account → Security → API tokens.<br>Your project key is the prefix in issue numbers (e.g. MYAPP in MYAPP-42).</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="S.jira={domain:document.getElementById('mj-d').value,email:document.getElementById('mj-e').value,token:document.getElementById('mj-t').value,project:document.getElementById('mj-p').value};S.pmTool='jira';closeModal();ok('Jira configured ✓');syncPanel()">Save</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>`,
+
+    linear: `
+      <div class="field"><label>Linear API Key</label><input id="ml-k" type="password" placeholder="lin_api_..." value="${S.linear.apiKey}"></div>
+      <div class="field"><label>Team ID <span style="font-weight:400;text-transform:none">(optional)</span></label><input id="ml-t" placeholder="e.g. TEAM_ID" value="${S.linear.teamId}"></div>
+      <p class="field-hint">Generate your API key in Linear → Settings → API → Personal API keys.<br>Find your Team ID at Linear → Settings → Team → General (in the URL).</p>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="S.linear={apiKey:document.getElementById('ml-k').value,teamId:document.getElementById('ml-t').value};S.pmTool='linear';closeModal();ok('Linear configured ✓');syncPanel()">Save</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>`,
+  };
+
+  const titles = { figma: 'Connect Figma', jira: 'Configure Jira', linear: 'Configure Linear' };
+
+  $modal.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal">
+        <div class="modal-head">
+          <span class="modal-title">${titles[type]}</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        ${bodies[type]}
+      </div>
+    </div>`;
+}
+
+function closeModal() { $modal.innerHTML = ''; }
+
+// ══════════════════════════════════════════════════════════════════
+//  AUTOCOMPLETE
+// ══════════════════════════════════════════════════════════════════
+
+function updateAC(val) {
+  if (!val.startsWith('/')) { $acMount.innerHTML = ''; S.acItems = []; return; }
+
+  const matches = CMDS.filter(c =>
+    c.c.toLowerCase().startsWith(val.toLowerCase()) ||
+    (c.c + ' ').toLowerCase().startsWith(val.toLowerCase())
+  );
+
+  if (!matches.length) { $acMount.innerHTML = ''; S.acItems = []; return; }
+
+  S.acItems = matches.slice(0, 9);
+  $acMount.innerHTML = '<div class="ac-box">' + S.acItems.map((c, i) => `
+    <div class="ac-item ${i === S.acIdx ? 'active' : ''}"
+      onclick="$inp.value='${c.c} ';$inp.focus();S.acIdx=-1;updateAC('${c.c} ')">
+      <span class="ac-cmd">${c.c} ${c.a}</span>
+      <span class="ac-desc">${c.d}</span>
+    </div>`).join('') + '</div>';
+}
+
+function hideAC() { $acMount.innerHTML = ''; S.acItems = []; S.acIdx = -1; }
+
+// ── Keyboard Handling ─────────────────────────────────────────────
+$inp.addEventListener('input', e => { S.acIdx = -1; updateAC(e.target.value); });
+
+$inp.addEventListener('keydown', e => {
+  switch (e.key) {
+    case 'Enter': {
+      const v = $inp.value; $inp.value = ''; run(v); break;
+    }
+    case 'ArrowUp':
+      e.preventDefault();
+      if (S.acItems.length) {
+        S.acIdx = Math.max(0, S.acIdx - 1); updateAC($inp.value);
+      } else if (S.hist.length) {
+        S.histIdx = Math.min(S.hist.length - 1, S.histIdx + 1);
+        $inp.value = S.hist[S.histIdx] || '';
+      }
+      break;
+    case 'ArrowDown':
+      e.preventDefault();
+      if (S.acItems.length) {
+        S.acIdx = Math.min(S.acItems.length - 1, S.acIdx + 1); updateAC($inp.value);
+      } else {
+        S.histIdx = Math.max(-1, S.histIdx - 1);
+        $inp.value = S.histIdx >= 0 ? S.hist[S.histIdx] : '';
+      }
+      break;
+    case 'Tab':
+      if (S.acItems.length) {
+        e.preventDefault();
+        $inp.value = S.acItems[Math.max(0, S.acIdx)].c + ' ';
+        updateAC($inp.value);
+      }
+      break;
+    case 'Escape':
+      hideAC(); break;
+  }
+});
+
+document.addEventListener('click', e => {
+  if (!document.querySelector('.t-bar')?.contains(e.target)) hideAC();
+});
+
+// ══════════════════════════════════════════════════════════════════
+//  BOOT
+// ══════════════════════════════════════════════════════════════════
+
+function boot() {
+  sep();
+  L('<strong>PM Harness CLI</strong>  ·  Code Agent Pipeline  ·  v2.0', 'l-info');
+  dim('  Claude Sonnet  ·  Figma MCP  ·  Jira  ·  Linear  ·  MIT License');
+  sep();
+  dim('  Workflow:');
+  dim('    /init &lt;name&gt;  →  /set vision|stack|users  →  /figma &lt;url&gt;  (optional)');
+  dim('    /epics  →  /epic &lt;n&gt;  →  /stories  →  /tasks  →  /copy | /push');
+  sep();
+  dim('  Keyboard shortcuts:  Tab = autocomplete  ·  ↑↓ = history  ·  Esc = close');
+  sep();
+  dim('  Type /help to see all available commands.');
+  sep();
+}
+
+boot();
+syncPanel();
+$inp.focus();
+</script>
+</body>
+</html>
