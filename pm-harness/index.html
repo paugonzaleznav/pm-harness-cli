@@ -597,7 +597,7 @@
       <div class="cmd-ref"><span>/pmharness-prd</span> · <span>/pmharness-prd view</span></div>
       <div class="cmd-ref"><span>/pmharness-tasks</span> · <span>/pmharness-tasks list</span></div>
       <div class="cmd-ref"><span>/pmharness-task</span> &lt;n&gt;</div>
-      <div class="cmd-ref"><span>/pmharness-copy</span> task &lt;n&gt; | tasks | export</div>
+      <div class="cmd-ref"><span>/pmharness-export</span> task &lt;n&gt; | tasks | prd | all</div>
       <div class="cmd-ref"><span>/pmharness-figma</span> &lt;url|key&gt;</div>
       <div class="cmd-ref"><span>/pmharness-config</span> agent | pmtool | figma</div>
       <div class="cmd-ref"><span>/pmharness-push</span> [jira|linear]</div>
@@ -693,10 +693,10 @@ const CMDS = [
   { c:'/pmharness-tasks',         a:'',             d:'Generate code agent tasks from stories' },
   { c:'/pmharness-tasks list',    a:'',             d:'List all tasks with push status' },
   { c:'/pmharness-task',          a:'<n>',           d:'Show full agent prompt for task n' },
-  { c:'/pmharness-copy task',     a:'<n>',           d:'Copy task n prompt to clipboard' },
-  { c:'/pmharness-copy tasks',    a:'',             d:'Copy all task prompts as Markdown' },
-  { c:'/pmharness-copy prd',      a:'',             d:'Copy the PRD as a Markdown document' },
-  { c:'/pmharness-copy export',   a:'',             d:'Copy full spec as Markdown' },
+  { c:'/pmharness-export task',     a:'<n>',           d:'Copy task n prompt to clipboard' },
+  { c:'/pmharness-export tasks',    a:'',             d:'Copy all task prompts as Markdown' },
+  { c:'/pmharness-export prd',      a:'',             d:'Copy the PRD as a Markdown document' },
+  { c:'/pmharness-export all',   a:'',             d:'Copy full spec as Markdown' },
   { c:'/pmharness-figma',         a:'<url|filekey>', d:'Connect Figma file — extracts UI context via MCP' },
   { c:'/pmharness-config',        a:'',             d:'Open configuration (Agent · PM Tool · Figma)' },
   { c:'/pmharness-config agent',  a:'',             d:'Open Agent configuration tab' },
@@ -1055,11 +1055,11 @@ async function run(raw) {
   if (c0 === '/pmharness-task')                return cmdTaskDetail(rest);
 
   // Copy
-  if (c01 === '/pmharness-copy task')          return cmdCopyTask(parts[2]);
-  if (c01 === '/pmharness-copy tasks')         return cmdCopyAll();
-  if (c01 === '/pmharness-copy prd')           return cmdCopyPrd();
-  if (c01 === '/pmharness-copy export')        return cmdCopyExport();
-  if (c0 === '/pmharness-copy')                return fail('Usage: /pmharness-copy task &lt;n&gt; | /pmharness-copy tasks | /pmharness-copy prd | /pmharness-copy export');
+  if (c01 === '/pmharness-export task')          return cmdCopyTask(parts[2]);
+  if (c01 === '/pmharness-export tasks')         return cmdCopyAll();
+  if (c01 === '/pmharness-export prd')           return cmdCopyPrd();
+  if (c01 === '/pmharness-export all')        return cmdCopyExport();
+  if (c0 === '/pmharness-export')                return fail('Usage: /pmharness-export task &lt;n&gt; | /pmharness-export tasks | /pmharness-export prd | /pmharness-export all');
 
   // Integrations
   if (c0 === '/pmharness-figma')               return cmdFigma(rest);
@@ -1091,7 +1091,7 @@ function cmdHelp(filter) {
     const groups = [
       { g: 'Product Context',  cs: ['/pmharness-import','/pmharness-init','/pmharness-set vision','/pmharness-set stack','/pmharness-set users','/pmharness-set sprint','/pmharness-ctx'] },
       { g: 'AI Pipeline',      cs: ['/pmharness-epics','/pmharness-epics list','/pmharness-epic','/pmharness-stories','/pmharness-stories list','/pmharness-story','/pmharness-usecases','/pmharness-usecases list','/pmharness-usecase','/pmharness-prd','/pmharness-prd view','/pmharness-tasks','/pmharness-tasks list','/pmharness-task'] },
-      { g: 'Copy & Export',    cs: ['/pmharness-copy task','/pmharness-copy tasks','/pmharness-copy prd','/pmharness-copy export','/pmharness-summary'] },
+      { g: 'Copy & Export',    cs: ['/pmharness-export task','/pmharness-export tasks','/pmharness-export prd','/pmharness-export all','/pmharness-summary'] },
       { g: 'Integrations',     cs: ['/pmharness-figma','/pmharness-config','/pmharness-config agent','/pmharness-config pmtool','/pmharness-config figma','/pmharness-push','/pmharness-push jira','/pmharness-push linear','/pmharness-status'] },
       { g: 'Utilities',        cs: ['/pmharness-help','/pmharness-clear','/pmharness-reset'] },
     ];
@@ -1527,7 +1527,7 @@ Generate a PRD. JSON object:
     ok(`PRD generated: <strong>${parsed.title}</strong>  v${parsed.version || '1.0'}`);
     sep();
     renderPrd(parsed);
-    dim('  → /pmharness-prd view  to re-display  ·  /pmharness-copy prd  to copy as Markdown');
+    dim('  → /pmharness-prd view  to re-display  ·  /pmharness-export prd  to copy as Markdown');
     await saveMarkdown('prd.md', mdCopyPrd());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
@@ -1537,7 +1537,7 @@ function cmdPrdView() {
   if (!S.prd) { fail('No PRD yet. Run /pmharness-prd to generate one.'); return; }
   sep();
   renderPrd(S.prd);
-  dim('  → /pmharness-copy prd  to copy as Markdown');
+  dim('  → /pmharness-export prd  to copy as Markdown');
   sep();
 }
 
@@ -1682,7 +1682,7 @@ async function cmdGenTasks() {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 52)}  ${ctxTag(t.estimatedTokens)}`);
     });
     dim('');
-    dim('  Next: /pmharness-copy task &lt;n&gt;  ·  /pmharness-copy tasks  ·  paste into your code agent');
+    dim('  Next: /pmharness-export task &lt;n&gt;  ·  /pmharness-export tasks  ·  paste into your code agent');
     await saveMarkdown('tasks.md', mdTasks());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
@@ -1713,11 +1713,11 @@ function cmdTaskDetail(arg) {
     t.constraints.forEach(c => L(`  <span style="color:var(--text-warn)">⚠</span>  ${c}`, 'l-dim'));
   }
   if (t.expectedOutput) dim('  Expected output: ' + clip(t.expectedOutput, 72));
-  dim(`  → /pmharness-copy task ${n}  to copy this prompt to the clipboard`);
+  dim(`  → /pmharness-export task ${n}  to copy this prompt to the clipboard`);
   sep();
 }
 
-// ── /pmharness-copy ─────────────────────────────────────────────────────────
+// ── /pmharness-export ─────────────────────────────────────────────────────────
 function cmdCopyTask(arg) {
   const n = parseInt(arg);
   if (isNaN(n) || n < 1 || n > S.tasks.length) { fail('Invalid number.'); return; }
@@ -1902,7 +1902,7 @@ function cmdExport() {
     });
   }
   dim('');
-  dim('  → /pmharness-copy export  to copy the full Markdown spec to clipboard');
+  dim('  → /pmharness-export all  to copy the full Markdown spec to clipboard');
   sep();
 }
 
@@ -2453,7 +2453,7 @@ function boot() {
   sep();
   dim('  Workflow:');
   dim('    /pmharness-import &lt;doc&gt;  or  /pmharness-init &lt;name&gt;  →  /pmharness-set vision|stack|users  →  /pmharness-figma &lt;url&gt;  (optional)');
-  dim('    /pmharness-epics  →  /pmharness-epic &lt;n&gt;  →  /pmharness-stories  and/or  /pmharness-usecases  →  /pmharness-tasks  →  /pmharness-copy | /pmharness-push');
+  dim('    /pmharness-epics  →  /pmharness-epic &lt;n&gt;  →  /pmharness-stories  and/or  /pmharness-usecases  →  /pmharness-tasks  →  /pmharness-export | /pmharness-push');
   dim('    /pmharness-prd  generates a full PRD document from all context at any stage');
   sep();
   dim('  Keyboard shortcuts:  Tab = autocomplete  ·  ↑↓ = history  ·  Esc = close');

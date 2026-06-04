@@ -178,7 +178,7 @@ Tasks are the structured prompts for your code agent — they are never pushed t
 ### 8 — Hand off to your code agent
 
 ```bash
-/pmharness-copy task 2    ← copies the prompt to clipboard
+/pmharness-export task 2    ← copies the prompt to clipboard
 
 # Then in your terminal:
 claude    # paste → Claude Code picks it up
@@ -190,9 +190,9 @@ aider     # paste
 ### 9 — Export
 
 ```
-/pmharness-copy tasks     ← all task prompts as Markdown to clipboard
-/pmharness-copy export    ← full spec (vision + stories + tasks + Figma) to clipboard
-/pmharness-copy prd       ← PRD as Markdown to clipboard
+/pmharness-export tasks     ← all task prompts as Markdown to clipboard
+/pmharness-export all    ← full spec (vision + stories + tasks + Figma) to clipboard
+/pmharness-export prd       ← PRD as Markdown to clipboard
 /pmharness-summary        ← spec summary in terminal
 ```
 
@@ -239,10 +239,10 @@ aider     # paste
 
 | Command | Description |
 |---|---|
-| `/pmharness-copy task <n>` | Copy task n prompt to clipboard |
-| `/pmharness-copy tasks` | Copy all task prompts as Markdown |
-| `/pmharness-copy prd` | Copy the PRD as Markdown |
-| `/pmharness-copy export` | Copy full spec as Markdown |
+| `/pmharness-export task <n>` | Copy task n prompt to clipboard |
+| `/pmharness-export tasks` | Copy all task prompts as Markdown |
+| `/pmharness-export prd` | Copy the PRD as Markdown |
+| `/pmharness-export all` | Copy full spec as Markdown |
 | `/pmharness-summary` | Spec summary in terminal |
 
 ### Integrations & configuration
@@ -353,7 +353,7 @@ pm-harness-cli/
             └── cmd*()         Individual command handlers
 ```
 
-**Session state** lives in memory only — page refresh clears it. In CLI mode, generated content is persisted automatically to `pm-specs/`. In browser mode, use `/pmharness-copy export` or `/pmharness-push` before closing the tab.
+**Session state** lives in memory only — page refresh clears it. In CLI mode, generated content is persisted automatically to `pm-specs/`. In browser mode, use `/pmharness-export all` or `/pmharness-push` before closing the tab.
 
 ---
 
