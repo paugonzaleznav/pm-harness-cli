@@ -46,17 +46,35 @@ Each layer reduces ambiguity and carries all the context from the layers above �
 
 ### CLI mode (recommended)
 
-The fastest way to run PM Harness locally. Requires Node.js 16+.
+Runs entirely in the terminal — no browser required. Requires Node.js 18+.
 
 ```bash
 git clone https://github.com/paugonzaleznav/pm-harness-cli
 cd pm-harness-cli
-node server.js
+node cli.js
 ```
 
-Open **http://localhost:3000** in your browser.
+Or install globally:
 
-Markdown files auto-save to `pm-specs/` after every generation step — no configuration needed:
+```bash
+npm install -g .
+pmharness
+```
+
+You get an interactive terminal session:
+
+```
+▸ /pmharness-init TaskFlow
+▸ /pmharness-set vision A SaaS that turns Slack threads into structured tasks
+▸ /pmharness-epics
+  ── Epics ──────────────────────────────────────
+  [1]  Authentication & User Management  [HIGH]
+  [2]  Task Extraction Pipeline          [HIGH]
+  ...
+▸ /pmharness-export task 1   ← copies prompt to clipboard, paste into any agent
+```
+
+Markdown files auto-save to `pm-specs/` after every generation step:
 
 ```
 pm-harness-cli/
@@ -68,20 +86,19 @@ pm-harness-cli/
     └── tasks.md
 ```
 
+**API key:** set the `ANTHROPIC_API_KEY` environment variable, or enter it once via `/pmharness-config agent`. Non-sensitive settings persist to `~/.pmharness.json`.
+
 ### Browser mode
 
-Use the single HTML file directly — no server required.
+Use the single HTML file when running inside Claude.ai or a hosted environment.
 
 ```bash
-# From the cloned repo
 open pm-harness/index.html
-
-# Or drop it into any project
-cp pm-harness/index.html /your/project/pm-harness.html
-open /your/project/pm-harness.html
+# or serve it:
+node server.js   # → http://localhost:3000
 ```
 
-In browser mode, use `/pmharness-setdir` to pick a project folder for auto-save (Chrome / Edge only). Files save to a `pm-docs/` subfolder inside it.
+In browser mode, use `/pmharness-setdir` to pick a project folder for auto-save (Chrome / Edge only).
 
 ### API key
 
@@ -336,22 +353,22 @@ Personal access token (`figd_…` from `Figma → Settings → Security → Acce
 
 ```
 pm-harness-cli/
-├── server.js          Node.js server — serves the app, writes pm-specs/ via POST /api/save
-├── package.json       npm start → node server.js
-├── pm-specs/          Auto-created on first run (CLI mode only)
+├── cli.js             Terminal CLI — full app in Node.js, no browser needed
+├── server.js          Browser server — serves index.html + POST /api/save for file writes
+├── package.json       npm start → cli.js  |  npm run browser → server.js
+├── pm-specs/          Auto-created on first run (CLI mode)
 └── pm-harness/
-    └── index.html     The entire browser app (~2200 lines, zero dependencies)
-        ├── CSS            Design tokens, layout, terminal, dark mode
-        ├── HTML           Status panel + terminal + modal root
-        └── JavaScript
-            ├── CMDS[]         Command registry (autocomplete source of truth)
-            ├── S{}            Session state (in-memory)
-            ├── run()          Command dispatcher
-            ├── claude()       AI client — routes to callAnthropic() or callOpenAI()
-            ├── saveMarkdown() File export — POST /api/save (CLI) or File System API (browser)
-            ├── isLocalMode()  Detects localhost to switch export strategy
-            └── cmd*()         Individual command handlers
+    └── index.html     Browser app (~2200 lines, zero frontend dependencies)
 ```
+
+**`cli.js`** — Node.js 18+, zero npm dependencies. Uses:
+- `readline` for the interactive REPL and Tab autocomplete
+- `fetch` (native Node 18) for Anthropic / OpenAI API calls
+- `fs` for writing `pm-specs/` files
+- `child_process` for clipboard (`pbcopy` / `xclip` / `clip`)
+- `~/.pmharness.json` for non-sensitive config persistence
+
+**`index.html`** — same commands and prompts as `cli.js`, rendered in a browser terminal UI.
 
 **Session state** lives in memory only — page refresh clears it. In CLI mode, generated content is persisted automatically to `pm-specs/`. In browser mode, use `/pmharness-export all` or `/pmharness-push` before closing the tab.
 

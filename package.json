@@ -1,12 +1,16 @@
 {
   "name": "pm-harness-cli",
-  "version": "2.1.0",
-  "description": "Browser-based PM workflow tool for AI code agents",
-  "main": "server.js",
+  "version": "3.0.0",
+  "description": "PM workflow CLI for AI code agents",
+  "main": "cli.js",
+  "bin": {
+    "pmharness": "./cli.js"
+  },
   "scripts": {
-    "start": "node server.js"
+    "start": "node cli.js",
+    "browser": "node server.js"
   },
   "engines": {
-    "node": ">=16"
+    "node": ">=18"
   }
 }
