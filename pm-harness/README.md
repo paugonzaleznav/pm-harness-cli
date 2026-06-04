@@ -194,35 +194,43 @@ Tasks are the structured prompts for your code agent — they are never pushed t
 
 ### 8 — Hand off to your code agent
 
-```bash
-/pmharness-export task 2    ← copies the prompt to clipboard
-
-# Then in your terminal:
-claude    # paste → Claude Code picks it up
-codex     # paste
-aider     # paste
-# or Cursor / Copilot / any agent that accepts text input
-```
-
-### 9 — Export
-
-Every generation step already auto-saves its file to `pm-specs/`. The export commands let you re-save, print, or bundle at any time:
-
-```
-/pmharness-export task <n>  ← prints the prompt to stdout — pipe it to your agent
-/pmharness-export tasks     ← re-saves pm-specs/tasks.md
-/pmharness-export prd       ← re-saves pm-specs/prd.md
-/pmharness-export all       ← saves pm-specs/spec.md (full spec in one file)
-/pmharness-summary          ← spec summary in terminal
-```
-
-Pipe a task prompt directly to your code agent:
+`/pmharness-export task <n>` prints the full structured prompt to stdout so you can pipe it directly into any code agent:
 
 ```bash
+# Claude Code
 node cli.js <<< "/pmharness-export task 1" | claude
+
+# Aider
+node cli.js <<< "/pmharness-export task 1" | aider
+
+# Any agent that reads from stdin
+node cli.js <<< "/pmharness-export task 1" | codex
 ```
 
-**Browser mode**: use `/pmharness-setdir` once per session to pick a folder (Chrome / Edge only).
+Or run interactively, read the prompt on screen, and paste it manually into Cursor, Copilot, or any tool that accepts text input.
+
+### 9 — Files in pm-specs/
+
+Every generation step auto-saves a Markdown file to `pm-specs/` — no extra commands needed:
+
+| When you run | File saved |
+|---|---|
+| `/pmharness-epics` | `pm-specs/epics.md` |
+| `/pmharness-stories` | `pm-specs/stories.md` |
+| `/pmharness-usecases` | `pm-specs/usecases.md` |
+| `/pmharness-prd` | `pm-specs/prd.md` |
+| `/pmharness-tasks` | `pm-specs/tasks.md` |
+
+If you need to re-save or bundle after the fact:
+
+```
+/pmharness-export tasks    ← re-saves pm-specs/tasks.md
+/pmharness-export prd      ← re-saves pm-specs/prd.md
+/pmharness-export all      ← saves pm-specs/spec.md (everything in one file)
+/pmharness-summary         ← spec summary in terminal
+```
+
+> **Browser mode**: files are not auto-saved. Use `/pmharness-setdir` once per session to pick a project folder (Chrome / Edge only), then the same auto-save behaviour applies.
 
 ---
 
