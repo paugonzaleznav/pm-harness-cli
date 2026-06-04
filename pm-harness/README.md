@@ -12,9 +12,10 @@ Works with Claude Code, GitHub Copilot, Codex, Aider, Open Code, Cursor, and any
 /pmharness-epics
 /pmharness-epic 2
 /pmharness-stories
+/pmharness-usecases
+/pmharness-push linear   ← pushes epics, stories & use cases to Linear
 /pmharness-tasks
 /pmharness-task 1        ← full structured prompt, ready for your code agent
-/pmharness-push linear   ← pushes epics, stories & use cases to Linear
 /pmharness-copy export   ← full Markdown spec to clipboard
 ```
 
@@ -106,28 +107,15 @@ PM Harness extracts your component names, UI flows, color palette, and typograph
 /pmharness-stories list        ← overview
 ```
 
-### 5 — Generate agent tasks
+### 5 — Generate use cases
 
 ```
-/pmharness-tasks          ← Claude generates structured prompts optimized for code agents
-/pmharness-task 1         ← read the full prompt (includes context, Figma specs, constraints, expected output)
+/pmharness-usecases            ← Claude generates 3-4 use cases for the active epic
+/pmharness-usecase 1           ← full detail: actor, main flow, alternative flows, postconditions
+/pmharness-usecases list       ← overview
 ```
 
-### 6 — Use with your code agent
-
-```bash
-/pmharness-copy task 2    ← copies the prompt to clipboard
-
-# Then in your terminal:
-claude          # paste → Claude Code picks it up
-# or
-codex           # paste
-# or
-aider           # paste
-# or Cursor / Copilot / any agent that accepts text input
-```
-
-### 7 — Push to your PM tool
+### 6 — Push to your PM tool
 
 ```
 /pmharness-config jira    ← one-time setup (domain, email, API token, project key)
@@ -147,9 +135,28 @@ Push creates the full hierarchy in one command:
 | Use case | Sub-task (linked to Story) | Sub-issue (linked to Story) |
 | Task | — (agent-only, not pushed) | — (agent-only, not pushed) |
 
-Tasks are the structured prompts for your code agent — they are not pushed to any PM tool. Use `/pmharness-copy task <n>` to hand them off.
+### 7 — Generate agent tasks
 
-### 8 — Export
+```
+/pmharness-tasks          ← Claude generates structured prompts optimized for code agents
+/pmharness-task 1         ← read the full prompt (includes context, Figma specs, constraints, expected output)
+```
+
+### 8 — Hand off to your code agent
+
+```bash
+/pmharness-copy task 2    ← copies the prompt to clipboard
+
+# Then in your terminal:
+claude          # paste → Claude Code picks it up
+# or
+codex           # paste
+# or
+aider           # paste
+# or Cursor / Copilot / any agent that accepts text input
+```
+
+### 9 — Export
 
 ```
 /pmharness-copy tasks     ← all prompts as Markdown (for sprint planning docs)
