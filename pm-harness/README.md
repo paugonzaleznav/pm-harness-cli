@@ -262,17 +262,23 @@ aider     # paste
 | `/pmharness-export all` | Copy full spec as Markdown |
 | `/pmharness-summary` | Spec summary in terminal |
 
-### Integrations & configuration
+### Integrations
 
 | Command | Description |
 |---|---|
-| `/pmharness-figma <url\|key>` | Connect a Figma file |
+| `/pmharness-figma <url\|key>` | Connect a Figma file (Anthropic only) |
+| `/pmharness-push jira` | Push epics, stories, use cases to Jira (Anthropic only) |
+| `/pmharness-push linear` | Push epics, stories, use cases to Linear (Anthropic only) |
+
+### Configuration
+
+| Command | Description |
+|---|---|
 | `/pmharness-config` | Open configuration (Agent · PM Tool · Figma) |
 | `/pmharness-config agent` | Configure AI provider, model, API key |
 | `/pmharness-config jira` | Configure Jira credentials |
 | `/pmharness-config linear` | Configure Linear credentials |
-| `/pmharness-push jira` | Push epics, stories, use cases to Jira |
-| `/pmharness-push linear` | Push epics, stories, use cases to Linear |
+| `/pmharness-config figma` | Configure Figma access token |
 | `/pmharness-setdir` | Pick a project folder for auto-save (browser mode only) |
 
 ### Utilities
