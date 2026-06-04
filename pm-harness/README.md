@@ -161,7 +161,7 @@ aider           # paste
 ```
 /pmharness-copy tasks     ← all prompts as Markdown (for sprint planning docs)
 /pmharness-copy export    ← full spec: vision + stories + tasks + Figma context
-/pmharness-export         ← summary view in terminal
+/pmharness-summary         ← summary view in terminal
 ```
 
 ---
@@ -201,7 +201,7 @@ aider           # paste
 | `/pmharness-config jira` | Configure Jira credentials |
 | `/pmharness-config linear` | Configure Linear credentials |
 | `/pmharness-push [jira\|linear]` | Push tasks to PM tool |
-| `/pmharness-export` | Spec summary in terminal |
+| `/pmharness-summary` | Spec summary in terminal |
 | `/pmharness-status` | Integration and agent status |
 | `/pmharness-help [filter]` | Show all commands (or filter by keyword) |
 | `/pmharness-clear` | Clear terminal output |

@@ -601,7 +601,7 @@
       <div class="cmd-ref"><span>/pmharness-figma</span> &lt;url|key&gt;</div>
       <div class="cmd-ref"><span>/pmharness-config</span> agent | pmtool | figma</div>
       <div class="cmd-ref"><span>/pmharness-push</span> [jira|linear]</div>
-      <div class="cmd-ref"><span>/pmharness-export</span> · <span>/pmharness-status</span></div>
+      <div class="cmd-ref"><span>/pmharness-summary</span> · <span>/pmharness-status</span></div>
       <div class="cmd-ref"><span>/pmharness-help</span> · <span>/pmharness-clear</span> · <span>/pmharness-reset</span></div>
     </div>
 
@@ -707,7 +707,7 @@ const CMDS = [
   { c:'/pmharness-push',          a:'[jira|linear]', d:'Push tasks to the configured PM tool' },
   { c:'/pmharness-push jira',     a:'',             d:'Push tasks to Jira' },
   { c:'/pmharness-push linear',   a:'',             d:'Push tasks to Linear' },
-  { c:'/pmharness-export',        a:'',             d:'Show the full spec summary in terminal' },
+  { c:'/pmharness-summary',       a:'',             d:'Show the full spec summary in terminal' },
   { c:'/pmharness-status',        a:'',             d:'Show status of all integrations' },
   { c:'/pmharness-help',          a:'[filter]',      d:'Show all commands, or filter by keyword' },
   { c:'/pmharness-clear',         a:'',             d:'Clear terminal output (state is preserved)' },
@@ -1013,7 +1013,7 @@ async function run(raw) {
   if (input === '/pmharness-reset')            return cmdReset();
   if (c0 === '/pmharness-help')                return cmdHelp(rest);
   if (c0 === '/pmharness-status')              return cmdStatus();
-  if (c0 === '/pmharness-export')              return cmdExport();
+  if (c0 === '/pmharness-summary')             return cmdExport();
 
   // Import
   if (c0 === '/pmharness-import')              return cmdImport();
@@ -1088,7 +1088,7 @@ function cmdHelp(filter) {
     const groups = [
       { g: 'Product Context',  cs: ['/pmharness-import','/pmharness-init','/pmharness-set vision','/pmharness-set stack','/pmharness-set users','/pmharness-set sprint','/pmharness-ctx'] },
       { g: 'AI Pipeline',      cs: ['/pmharness-epics','/pmharness-epics list','/pmharness-epic','/pmharness-stories','/pmharness-stories list','/pmharness-story','/pmharness-usecases','/pmharness-usecases list','/pmharness-usecase','/pmharness-prd','/pmharness-prd view','/pmharness-tasks','/pmharness-tasks list','/pmharness-task'] },
-      { g: 'Copy & Export',    cs: ['/pmharness-copy task','/pmharness-copy tasks','/pmharness-copy prd','/pmharness-copy export','/pmharness-export'] },
+      { g: 'Copy & Export',    cs: ['/pmharness-copy task','/pmharness-copy tasks','/pmharness-copy prd','/pmharness-copy export','/pmharness-summary'] },
       { g: 'Integrations',     cs: ['/pmharness-figma','/pmharness-config','/pmharness-config agent','/pmharness-config pmtool','/pmharness-config figma','/pmharness-push','/pmharness-push jira','/pmharness-push linear','/pmharness-status'] },
       { g: 'Utilities',        cs: ['/pmharness-help','/pmharness-clear','/pmharness-reset'] },
     ];
@@ -1884,7 +1884,7 @@ async function cmdPush(tool) {
   sep(); syncPanel();
 }
 
-// ── /pmharness-export ───────────────────────────────────────────────────────
+// ── /pmharness-summary ──────────────────────────────────────────────────────
 function cmdExport() {
   const epic = S.epics.find(e => e.id === S.selEpic);
   sep(); hdr('Full spec — ' + (S.name || 'No product'));
