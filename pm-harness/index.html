@@ -233,6 +233,20 @@
       flex-shrink: 0;
       user-select: none;
     }
+    .upload-btn {
+      flex-shrink: 0;
+      background: none;
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-sm);
+      color: var(--text-3);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 7px;
+      line-height: 1.6;
+      font-family: var(--mono);
+      transition: color .12s, background .12s;
+    }
+    .upload-btn:hover { color: var(--teal); background: var(--bg-3); }
     .t-input {
       flex: 1;
       background: transparent;
@@ -426,6 +440,97 @@
       line-height: 1.7;
     }
 
+    /* ─────────────────────────────────────────────────────────────
+       Config Modal — Tabs, Radio Groups, Selects
+    ───────────────────────────────────────────────────────────── */
+    .tab-bar {
+      display: flex;
+      gap: 0;
+      margin-bottom: 18px;
+      border-bottom: 0.5px solid var(--border);
+    }
+    .cfg-tab {
+      font-family: var(--mono);
+      font-size: 10px;
+      padding: 6px 14px;
+      border: none;
+      border-bottom: 2px solid transparent;
+      margin-bottom: -0.5px;
+      background: none;
+      color: var(--text-2);
+      cursor: pointer;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      transition: color .12s;
+    }
+    .cfg-tab:hover { color: var(--text-1); }
+    .cfg-tab.active { color: var(--teal); border-bottom-color: var(--teal); }
+
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+
+    .field select {
+      width: 100%;
+      font-family: var(--mono);
+      font-size: 12px;
+      padding: 7px 10px;
+      background: var(--bg-2);
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      color: var(--text-1);
+      appearance: none;
+      cursor: pointer;
+      transition: border-color .15s;
+    }
+    .field select:focus { outline: none; border-color: var(--teal); }
+
+    .radio-row { display: flex; gap: 6px; margin-bottom: 14px; }
+    .radio-opt {
+      flex: 1;
+      padding: 6px 0;
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-md);
+      cursor: pointer;
+      text-align: center;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--text-2);
+      background: none;
+      transition: all .12s;
+    }
+    .radio-opt:hover { color: var(--text-1); }
+    .radio-opt.active {
+      border-color: var(--teal);
+      color: var(--teal);
+      background: var(--teal-light);
+    }
+
+    .cfg-gear {
+      flex-shrink: 0;
+      background: none;
+      border: 0.5px solid var(--border-2);
+      border-radius: var(--r-sm);
+      color: var(--text-3);
+      cursor: pointer;
+      font-size: 13px;
+      padding: 2px 7px;
+      line-height: 1.6;
+      font-family: var(--mono);
+      transition: color .12s, background .12s;
+    }
+    .cfg-gear:hover { color: var(--teal); background: var(--bg-3); }
+
+    .section-note {
+      font-size: 9px;
+      color: var(--text-3);
+      margin-bottom: 10px;
+      line-height: 1.7;
+      padding: 6px 10px;
+      background: var(--bg-2);
+      border-radius: var(--r-sm);
+      border: 0.5px solid var(--border);
+    }
+
     .btn-row { display: flex; gap: 8px; margin-top: 4px; }
     .btn {
       font-family: var(--mono);
@@ -466,6 +571,8 @@
       <div class="p-row"><span>Epics</span><span class="p-val" id="s-epics">0</span></div>
       <div class="p-row"><span>Active epic</span><span class="p-val" id="s-epic">—</span></div>
       <div class="p-row"><span>Stories</span><span class="p-val" id="s-stories">0</span></div>
+      <div class="p-row"><span>Use Cases</span><span class="p-val" id="s-usecases">0</span></div>
+      <div class="p-row"><span>PRD</span><span class="p-val" id="s-prd">—</span></div>
       <div class="p-row"><span>Tasks</span><span class="p-val" id="s-tasks">0</span></div>
     </div>
 
@@ -477,24 +584,28 @@
 
     <div class="p-cmds">
       <div class="p-label" style="margin-bottom:6px">Commands</div>
-      <div class="cmd-ref"><span>/init</span> &lt;name&gt;</div>
-      <div class="cmd-ref"><span>/set</span> vision|stack|users|sprint</div>
-      <div class="cmd-ref"><span>/ctx</span></div>
-      <div class="cmd-ref"><span>/epics</span> · <span>/epics list</span></div>
-      <div class="cmd-ref"><span>/epic</span> &lt;n&gt;</div>
-      <div class="cmd-ref"><span>/stories</span> · <span>/stories list</span></div>
-      <div class="cmd-ref"><span>/story</span> &lt;n&gt;</div>
-      <div class="cmd-ref"><span>/tasks</span> · <span>/tasks list</span></div>
-      <div class="cmd-ref"><span>/task</span> &lt;n&gt;</div>
-      <div class="cmd-ref"><span>/copy</span> task &lt;n&gt; | tasks | export</div>
-      <div class="cmd-ref"><span>/figma</span> &lt;url|key&gt;</div>
-      <div class="cmd-ref"><span>/config</span> jira | linear</div>
-      <div class="cmd-ref"><span>/push</span> [jira|linear]</div>
-      <div class="cmd-ref"><span>/export</span> · <span>/status</span></div>
-      <div class="cmd-ref"><span>/help</span> · <span>/clear</span> · <span>/reset</span></div>
+      <div class="cmd-ref"><span>/pmharness-import</span> &lt;.txt .md .pdf .docx&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-init</span> &lt;name&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-set</span> vision|stack|users|sprint</div>
+      <div class="cmd-ref"><span>/pmharness-ctx</span></div>
+      <div class="cmd-ref"><span>/pmharness-epics</span> · <span>/pmharness-epics list</span></div>
+      <div class="cmd-ref"><span>/pmharness-epic</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-stories</span> · <span>/pmharness-stories list</span></div>
+      <div class="cmd-ref"><span>/pmharness-story</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-usecases</span> · <span>/pmharness-usecases list</span></div>
+      <div class="cmd-ref"><span>/pmharness-usecase</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-prd</span> · <span>/pmharness-prd view</span></div>
+      <div class="cmd-ref"><span>/pmharness-tasks</span> · <span>/pmharness-tasks list</span></div>
+      <div class="cmd-ref"><span>/pmharness-task</span> &lt;n&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-copy</span> task &lt;n&gt; | tasks | export</div>
+      <div class="cmd-ref"><span>/pmharness-figma</span> &lt;url|key&gt;</div>
+      <div class="cmd-ref"><span>/pmharness-config</span> agent | pmtool | figma</div>
+      <div class="cmd-ref"><span>/pmharness-push</span> [jira|linear]</div>
+      <div class="cmd-ref"><span>/pmharness-export</span> · <span>/pmharness-status</span></div>
+      <div class="cmd-ref"><span>/pmharness-help</span> · <span>/pmharness-clear</span> · <span>/pmharness-reset</span></div>
     </div>
 
-    <div class="p-footer">Claude Sonnet · Figma MCP · MIT</div>
+    <div class="p-footer" id="p-footer">Claude Sonnet · Figma MCP · MIT</div>
   </div>
 
   <!-- ── Terminal ─────────────────────────────────────────── -->
@@ -505,9 +616,12 @@
       <span class="t-prompt">▸</span>
       <input
         class="t-input" id="inp"
-        placeholder="Type /help to see all commands  ·  Tab = autocomplete  ·  ↑↓ = history"
+        placeholder="Type /pmharness-help to see all commands  ·  Tab = autocomplete  ·  ↑↓ = history"
         autocomplete="off" spellcheck="false"
       />
+      <button class="upload-btn" title="Import spec document (.txt, .md, .pdf, .docx)" onclick="cmdImport()">📎</button>
+      <button class="cfg-gear" title="Configuration" onclick="showConfigModal('agent')">⚙</button>
+      <input type="file" id="file-inp" accept=".txt,.md,.pdf,.docx" style="display:none" onchange="handleFileImport(this.files[0])">
     </div>
   </div>
 
@@ -531,39 +645,73 @@
    the Anthropic MCP server protocol (mcp_servers param).
 ═══════════════════════════════════════════════════════════════════ */
 
+// ── Model & Agent Registries ──────────────────────────────────────
+const MODELS = [
+  { id: 'claude-sonnet-4-20250514',  label: 'Claude Sonnet 4 (default)' },
+  { id: 'claude-opus-4-5-20251001',  label: 'Claude Opus 4.5 (most capable)' },
+  { id: 'claude-haiku-4-5-20251001', label: 'Claude Haiku 4.5 (fastest)' },
+];
+
+const OPENAI_MODELS = [
+  { id: 'gpt-4o',      label: 'GPT-4o (recommended)' },
+  { id: 'gpt-4o-mini', label: 'GPT-4o Mini (fastest)' },
+  { id: 'o3',          label: 'O3 (most capable)' },
+];
+
+const TARGET_AGENTS = [
+  { id: 'generic',     label: 'Generic (any agent)' },
+  { id: 'claude-code', label: 'Claude Code' },
+  { id: 'codex',       label: 'OpenAI Codex' },
+  { id: 'open-code',   label: 'Open Code' },
+  { id: 'copilot',     label: 'GitHub Copilot' },
+  { id: 'aider',       label: 'Aider' },
+  { id: 'cursor',      label: 'Cursor' },
+];
+
 // ── Command Registry ──────────────────────────────────────────────
-// Single source of truth for autocomplete and /help output.
+// Single source of truth for autocomplete and /pmharness-help output.
 const CMDS = [
-  { c:'/init',          a:'<name>',        d:'Initialize a new product session' },
-  { c:'/set vision',    a:'<text>',        d:'Set the product vision / problem statement' },
-  { c:'/set stack',     a:'<tech>',        d:'Set the technical stack' },
-  { c:'/set users',     a:'<text>',        d:'Set the target users' },
-  { c:'/set sprint',    a:'<text>',        d:'Set the current sprint focus' },
-  { c:'/ctx',           a:'',             d:'Show all current product context' },
-  { c:'/context',       a:'',             d:'Alias for /ctx' },
-  { c:'/epics',         a:'',             d:'Generate epics with AI from context' },
-  { c:'/epics list',    a:'',             d:'List all generated epics' },
-  { c:'/epic',          a:'<n>',           d:'Select epic n as the active epic' },
-  { c:'/stories',       a:'',             d:'Generate user stories for the active epic' },
-  { c:'/stories list',  a:'',             d:'List all user stories' },
-  { c:'/story',         a:'<n>',           d:'Show full detail for story n' },
-  { c:'/tasks',         a:'',             d:'Generate code agent tasks from stories' },
-  { c:'/tasks list',    a:'',             d:'List all tasks with push status' },
-  { c:'/task',          a:'<n>',           d:'Show full agent prompt for task n' },
-  { c:'/copy task',     a:'<n>',           d:'Copy task n prompt to clipboard' },
-  { c:'/copy tasks',    a:'',             d:'Copy all task prompts as Markdown' },
-  { c:'/copy export',   a:'',             d:'Copy full spec as Markdown' },
-  { c:'/figma',         a:'<url|filekey>', d:'Connect Figma file — extracts UI context via MCP' },
-  { c:'/config jira',   a:'',             d:'Configure Jira credentials' },
-  { c:'/config linear', a:'',             d:'Configure Linear credentials' },
-  { c:'/push',          a:'[jira|linear]', d:'Push tasks to the configured PM tool' },
-  { c:'/push jira',     a:'',             d:'Push tasks to Jira' },
-  { c:'/push linear',   a:'',             d:'Push tasks to Linear' },
-  { c:'/export',        a:'',             d:'Show the full spec summary in terminal' },
-  { c:'/status',        a:'',             d:'Show status of all integrations' },
-  { c:'/help',          a:'[filter]',      d:'Show all commands, or filter by keyword' },
-  { c:'/clear',         a:'',             d:'Clear terminal output (state is preserved)' },
-  { c:'/reset',         a:'',             d:'Reset the entire session' },
+  { c:'/pmharness-import',        a:'',             d:'Import a spec document (.txt .md .pdf .docx) to auto-fill context' },
+  { c:'/pmharness-init',          a:'<name>',        d:'Initialize a new product session' },
+  { c:'/pmharness-set vision',    a:'<text>',        d:'Set the product vision / problem statement' },
+  { c:'/pmharness-set stack',     a:'<tech>',        d:'Set the technical stack' },
+  { c:'/pmharness-set users',     a:'<text>',        d:'Set the target users' },
+  { c:'/pmharness-set sprint',    a:'<text>',        d:'Set the current sprint focus' },
+  { c:'/pmharness-ctx',           a:'',             d:'Show all current product context' },
+  { c:'/pmharness-context',       a:'',             d:'Alias for /pmharness-ctx' },
+  { c:'/pmharness-epics',         a:'',             d:'Generate epics with AI from context' },
+  { c:'/pmharness-epics list',    a:'',             d:'List all generated epics' },
+  { c:'/pmharness-epic',          a:'<n>',           d:'Select epic n as the active epic' },
+  { c:'/pmharness-stories',       a:'',             d:'Generate user stories for the active epic' },
+  { c:'/pmharness-stories list',  a:'',             d:'List all user stories' },
+  { c:'/pmharness-story',         a:'<n>',           d:'Show full detail for story n' },
+  { c:'/pmharness-usecases',      a:'',             d:'Generate use cases for the active epic' },
+  { c:'/pmharness-usecases list', a:'',             d:'List all use cases' },
+  { c:'/pmharness-usecase',       a:'<n>',           d:'Show full detail for use case n' },
+  { c:'/pmharness-prd',           a:'',             d:'Generate a PRD document from all current context' },
+  { c:'/pmharness-prd view',      a:'',             d:'Re-display the generated PRD' },
+  { c:'/pmharness-tasks',         a:'',             d:'Generate code agent tasks from stories' },
+  { c:'/pmharness-tasks list',    a:'',             d:'List all tasks with push status' },
+  { c:'/pmharness-task',          a:'<n>',           d:'Show full agent prompt for task n' },
+  { c:'/pmharness-copy task',     a:'<n>',           d:'Copy task n prompt to clipboard' },
+  { c:'/pmharness-copy tasks',    a:'',             d:'Copy all task prompts as Markdown' },
+  { c:'/pmharness-copy prd',      a:'',             d:'Copy the PRD as a Markdown document' },
+  { c:'/pmharness-copy export',   a:'',             d:'Copy full spec as Markdown' },
+  { c:'/pmharness-figma',         a:'<url|filekey>', d:'Connect Figma file — extracts UI context via MCP' },
+  { c:'/pmharness-config',        a:'',             d:'Open configuration (Agent · PM Tool · Figma)' },
+  { c:'/pmharness-config agent',  a:'',             d:'Open Agent configuration tab' },
+  { c:'/pmharness-config pmtool', a:'',             d:'Open PM Tool configuration tab (Jira / Linear)' },
+  { c:'/pmharness-config figma',  a:'',             d:'Open Figma configuration tab' },
+  { c:'/pmharness-config jira',   a:'',             d:'Open PM Tool tab with Jira selected' },
+  { c:'/pmharness-config linear', a:'',             d:'Open PM Tool tab with Linear selected' },
+  { c:'/pmharness-push',          a:'[jira|linear]', d:'Push tasks to the configured PM tool' },
+  { c:'/pmharness-push jira',     a:'',             d:'Push tasks to Jira' },
+  { c:'/pmharness-push linear',   a:'',             d:'Push tasks to Linear' },
+  { c:'/pmharness-export',        a:'',             d:'Show the full spec summary in terminal' },
+  { c:'/pmharness-status',        a:'',             d:'Show status of all integrations' },
+  { c:'/pmharness-help',          a:'[filter]',      d:'Show all commands, or filter by keyword' },
+  { c:'/pmharness-clear',         a:'',             d:'Clear terminal output (state is preserved)' },
+  { c:'/pmharness-reset',         a:'',             d:'Reset the entire session' },
 ];
 
 // ── Application State ─────────────────────────────────────────────
@@ -575,15 +723,28 @@ const S = {
   epics:    [],   // [{ id, title, description, priority, tags[] }]
   selEpic:  null, // id of the currently selected epic
   stories:  [],   // [{ id, role, action, benefit, acceptanceCriteria[], complexity }]
+  usecases: [],   // [{ id, title, actor, preconditions[], mainFlow[], alternativeFlows[], postconditions[] }]
+  prd:      null, // { title, version, overview, problemStatement, goals[], successMetrics[], personas[], features[], outOfScope[], technicalConsiderations[], risks[], openQuestions[] }
   tasks:    [],   // [{ id, title, agentPrompt, context, constraints[], expectedOutput, estimatedTokens }]
 
+  // Agent & tool configuration (persisted separately via saveConfig/loadConfig)
+  config: {
+    provider:    'anthropic',   // 'anthropic' | 'openai'
+    apiKey:      '',            // Anthropic key (sessionStorage)
+    openaiKey:   '',            // OpenAI key (sessionStorage)
+    model:       'claude-sonnet-4-20250514',
+    targetAgent: 'generic',
+    maxTokens:   1000,
+  },
+
   // Integration state
-  figmaCtx: null, // { summary, components[], flows[], colors[], patterns[], details }
-  figmaKey: '',
-  pmTool:   null, // 'jira' | 'linear' | null
+  figmaCtx:   null, // { summary, components[], flows[], colors[], patterns[], details }
+  figmaKey:   '',
+  figmaToken: '',   // personal access token for Figma MCP auth
+  pmTool:     null, // 'jira' | 'linear' | null
   jira:   { domain: '', email: '', token: '', project: '' },
   linear: { apiKey: '', teamId: '' },
-  pushed: {},     // { [taskId]: 'Jira' | 'Linear' }
+  pushed: {},       // { [taskId]: 'Jira' | 'Linear' }
 
   // CLI state
   hist:    [],    // command history, newest first
@@ -662,7 +823,8 @@ function clipCopy(text, id) {
 
 /** Loading indicator. Returns the DOM node so it can be removed. */
 function loader() {
-  return L('<span class="dots"><span></span><span></span><span></span></span>  Processing with Claude Sonnet...', 'l-dim');
+  const name = S.config.provider === 'openai' ? 'OpenAI' : 'Claude';
+  return L(`<span class="dots"><span></span><span></span><span></span></span>  Processing with ${name}...`, 'l-dim');
 }
 function rmLoader(el) { if (el?.parentNode) el.parentNode.removeChild(el); }
 
@@ -674,43 +836,140 @@ function syncPanel() {
   document.getElementById('s-epics').textContent   = S.epics.length;
   const ep = S.selEpic != null ? S.epics.find(e => e.id === S.selEpic) : null;
   document.getElementById('s-epic').textContent    = ep ? clip(ep.title, 13) : '—';
-  document.getElementById('s-stories').textContent = S.stories.length;
-  document.getElementById('s-tasks').textContent   = S.tasks.length;
+  document.getElementById('s-stories').textContent  = S.stories.length;
+  document.getElementById('s-usecases').textContent = S.usecases.length;
+  document.getElementById('s-prd').textContent      = S.prd ? '✓ v' + (S.prd.version || '1.0') : '—';
+  document.getElementById('s-tasks').textContent    = S.tasks.length;
   document.getElementById('d-figma').className     = 'dot' + (S.figmaCtx ? ' on' : '');
   document.getElementById('d-pm').className        = 'dot' + (S.pmTool   ? ' on' : '');
   document.getElementById('s-pm').textContent      = S.pmTool
     ? (S.pmTool === 'jira' ? 'Jira ✓' : 'Linear ✓') : 'PM Tool';
+  const allModels = [...MODELS, ...OPENAI_MODELS];
+  const modelLabel = (allModels.find(m => m.id === S.config.model) || MODELS[0]).label
+    .replace(' (default)', '').replace(' (most capable)', '').replace(' (fastest)', '')
+    .replace(' (recommended)', '');
+  const agentLabel = S.config.targetAgent === 'generic' ? '' : ' · ' + (TARGET_AGENTS.find(a => a.id === S.config.targetAgent)?.label || '');
+  document.getElementById('p-footer').textContent = modelLabel + agentLabel + ' · MIT';
 }
 
-// ── Anthropic API Client ──────────────────────────────────────────
+// ── Configuration Persistence ─────────────────────────────────────
 /**
- * Call the Anthropic Messages API.
- *
- * @param {string}  system - System prompt (role/persona for Claude)
- * @param {string}  user   - User message / task description
- * @param {Array=}  mcps   - Optional MCP server configs for integrations
- *
- * MCP server format:
- *   [{ type: 'url', url: 'https://mcp.example.com/mcp', name: 'server-name' }]
- *
- * The Anthropic API handles the MCP protocol handshake transparently.
- * Responses with MCP tool use include 'mcp_tool_result' content blocks
- * in addition to 'text' blocks.
+ * Persistence strategy:
+ *   localStorage    — non-sensitive: model, targetAgent, maxTokens, Jira domain/email/project,
+ *                     Linear teamId, Figma file key, active PM tool.
+ *   sessionStorage  — credentials: Anthropic API key, Jira token, Linear API key, Figma token.
+ *                     Survives page refresh but clears when the tab/browser is closed.
  */
-async function claude(system, user, mcps) {
+function saveConfig() {
+  try {
+    localStorage.setItem('pmh-cfg', JSON.stringify({
+      provider:    S.config.provider,
+      model:       S.config.model,
+      targetAgent: S.config.targetAgent,
+      maxTokens:   S.config.maxTokens,
+      jiraDomain:  S.jira.domain,
+      jiraEmail:   S.jira.email,
+      jiraProject: S.jira.project,
+      linearTeamId: S.linear.teamId,
+      figmaKey:    S.figmaKey,
+      pmTool:      S.pmTool,
+    }));
+  } catch {}
+  try {
+    sessionStorage.setItem('pmh-creds', JSON.stringify({
+      apiKey:      S.config.apiKey,
+      openaiKey:   S.config.openaiKey,
+      jiraToken:   S.jira.token,
+      linearApiKey: S.linear.apiKey,
+      figmaToken:  S.figmaToken,
+    }));
+  } catch {}
+}
+
+function loadConfig() {
+  try {
+    const c = JSON.parse(localStorage.getItem('pmh-cfg') || '{}');
+    if (c.provider)     S.config.provider    = c.provider;
+    if (c.model)        S.config.model       = c.model;
+    if (c.targetAgent)  S.config.targetAgent = c.targetAgent;
+    if (c.maxTokens)    S.config.maxTokens   = c.maxTokens;
+    if (c.jiraDomain)   S.jira.domain        = c.jiraDomain;
+    if (c.jiraEmail)    S.jira.email         = c.jiraEmail;
+    if (c.jiraProject)  S.jira.project       = c.jiraProject;
+    if (c.linearTeamId) S.linear.teamId      = c.linearTeamId;
+    if (c.figmaKey)     S.figmaKey           = c.figmaKey;
+    if (c.pmTool)       S.pmTool             = c.pmTool;
+  } catch {}
+  try {
+    const cr = JSON.parse(sessionStorage.getItem('pmh-creds') || '{}');
+    if (cr.apiKey)       S.config.apiKey    = cr.apiKey;
+    if (cr.openaiKey)    S.config.openaiKey = cr.openaiKey;
+    if (cr.jiraToken)    S.jira.token       = cr.jiraToken;
+    if (cr.linearApiKey) S.linear.apiKey    = cr.linearApiKey;
+    if (cr.figmaToken)   S.figmaToken       = cr.figmaToken;
+  } catch {}
+}
+
+// ── AI Client — routes to Anthropic or OpenAI ────────────────────
+/**
+ * Unified AI call. Routes to Anthropic or OpenAI based on S.config.provider.
+ * MCPs are Anthropic-only — silently ignored when provider is 'openai'.
+ * Response is always normalized to { content: [{ type:'text', text:'...' }] }
+ * so getText() and parseJ() work without modification for either provider.
+ */
+async function claude(system, user, mcps, maxTokens, extraContent = null) {
+  if (S.config.provider === 'openai') {
+    return callOpenAI(system, user, maxTokens, extraContent);
+  }
+  return callAnthropic(system, user, mcps, maxTokens, extraContent);
+}
+
+async function callAnthropic(system, user, mcps, maxTokens, extraContent) {
+  const tokens = maxTokens ?? S.config.maxTokens ?? 1000;
+  const userContent = extraContent
+    ? [...extraContent, { type: 'text', text: user }]
+    : user;
   const body = {
-    model: 'claude-sonnet-4-20250514',
-    max_tokens: 1000,
+    model: S.config.model || 'claude-sonnet-4-20250514',
+    max_tokens: tokens,
     system,
-    messages: [{ role: 'user', content: user }],
+    messages: [{ role: 'user', content: userContent }],
   };
   if (mcps) body.mcp_servers = mcps;
+  const headers = { 'Content-Type': 'application/json' };
+  if (S.config.apiKey) {
+    headers['x-api-key'] = S.config.apiKey;
+    headers['anthropic-version'] = '2023-06-01';
+    headers['anthropic-dangerous-direct-browser-access'] = 'true';
+  }
   const r = await fetch('https://api.anthropic.com/v1/messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(body),
+    method: 'POST', headers, body: JSON.stringify(body),
   });
   return r.json();
+}
+
+async function callOpenAI(system, user, maxTokens, extraContent) {
+  if (!S.config.openaiKey) {
+    throw new Error('OpenAI API key not set — open /pmharness-config agent to add it.');
+  }
+  const tokens = maxTokens ?? S.config.maxTokens ?? 1000;
+  // o-series models use max_completion_tokens and don't support system role
+  const isO = /^o\d/.test(S.config.model);
+  const messages = isO
+    ? [{ role: 'user', content: system + '\n\n' + user }]
+    : [{ role: 'system', content: system }, { role: 'user', content: user }];
+  const body = { model: S.config.model, messages };
+  if (isO) body.max_completion_tokens = tokens;
+  else     body.max_tokens = tokens;
+  const r = await fetch('https://api.openai.com/v1/chat/completions', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + S.config.openaiKey },
+    body: JSON.stringify(body),
+  });
+  const data = await r.json();
+  if (data.error) throw new Error(data.error.message);
+  // Normalize to Anthropic-like shape so getText() and getMcp() keep working
+  return { content: [{ type: 'text', text: data.choices?.[0]?.message?.content || '' }] };
 }
 
 /** Extract plain text from an API response (text-type content blocks). */
@@ -750,55 +1009,71 @@ async function run(raw) {
   const rest = parts.slice(1).join(' ');
 
   // Utilities
-  if (input === '/clear')            { $out.innerHTML = ''; return; }
-  if (input === '/reset')            return cmdReset();
-  if (c0 === '/help')                return cmdHelp(rest);
-  if (c0 === '/status')              return cmdStatus();
-  if (c0 === '/export')              return cmdExport();
+  if (input === '/pmharness-clear')            { $out.innerHTML = ''; return; }
+  if (input === '/pmharness-reset')            return cmdReset();
+  if (c0 === '/pmharness-help')                return cmdHelp(rest);
+  if (c0 === '/pmharness-status')              return cmdStatus();
+  if (c0 === '/pmharness-export')              return cmdExport();
+
+  // Import
+  if (c0 === '/pmharness-import')              return cmdImport();
 
   // Product context
-  if (c0 === '/init')                return cmdInit(rest);
-  if (c0 === '/ctx' || c0 === '/context') return cmdCtx();
-  if (c01 === '/set vision')         return cmdSet('vision',  parts.slice(2).join(' '));
-  if (c01 === '/set stack')          return cmdSet('stack',   parts.slice(2).join(' '));
-  if (c01 === '/set users')          return cmdSet('users',   parts.slice(2).join(' '));
-  if (c01 === '/set sprint')         return cmdSet('sprint',  parts.slice(2).join(' '));
-  if (c0 === '/set')                 return cmdSetHelp();
+  if (c0 === '/pmharness-init')                return cmdInit(rest);
+  if (c0 === '/pmharness-ctx' || c0 === '/pmharness-context') return cmdCtx();
+  if (c01 === '/pmharness-set vision')         return cmdSet('vision',  parts.slice(2).join(' '));
+  if (c01 === '/pmharness-set stack')          return cmdSet('stack',   parts.slice(2).join(' '));
+  if (c01 === '/pmharness-set users')          return cmdSet('users',   parts.slice(2).join(' '));
+  if (c01 === '/pmharness-set sprint')         return cmdSet('sprint',  parts.slice(2).join(' '));
+  if (c0 === '/pmharness-set')                 return cmdSetHelp();
 
   // Epics
-  if (c01 === '/epics list')         return cmdEpicsList();
-  if (c0 === '/epics')               return cmdGenEpics();
-  if (c0 === '/epic')                return cmdSelectEpic(rest);
+  if (c01 === '/pmharness-epics list')         return cmdEpicsList();
+  if (c0 === '/pmharness-epics')               return cmdGenEpics();
+  if (c0 === '/pmharness-epic')                return cmdSelectEpic(rest);
 
   // Stories
-  if (c01 === '/stories list')       return cmdStoriesList();
-  if (c0 === '/stories')             return cmdGenStories();
-  if (c0 === '/story')               return cmdStoryDetail(rest);
+  if (c01 === '/pmharness-stories list')       return cmdStoriesList();
+  if (c0 === '/pmharness-stories')             return cmdGenStories();
+  if (c0 === '/pmharness-story')               return cmdStoryDetail(rest);
+
+  // Use Cases
+  if (c01 === '/pmharness-usecases list')      return cmdUseCasesList();
+  if (c0 === '/pmharness-usecases')            return cmdGenUseCases();
+  if (c0 === '/pmharness-usecase')             return cmdUseCaseDetail(rest);
+
+  // PRD
+  if (c01 === '/pmharness-prd view')           return cmdPrdView();
+  if (c0 === '/pmharness-prd')                 return cmdGenPrd();
 
   // Tasks
-  if (c01 === '/tasks list')         return cmdTasksList();
-  if (c0 === '/tasks')               return cmdGenTasks();
-  if (c0 === '/task')                return cmdTaskDetail(rest);
+  if (c01 === '/pmharness-tasks list')         return cmdTasksList();
+  if (c0 === '/pmharness-tasks')               return cmdGenTasks();
+  if (c0 === '/pmharness-task')                return cmdTaskDetail(rest);
 
   // Copy
-  if (c01 === '/copy task')          return cmdCopyTask(parts[2]);
-  if (c01 === '/copy tasks')         return cmdCopyAll();
-  if (c01 === '/copy export')        return cmdCopyExport();
-  if (c0 === '/copy')                return fail('Usage: /copy task &lt;n&gt; | /copy tasks | /copy export');
+  if (c01 === '/pmharness-copy task')          return cmdCopyTask(parts[2]);
+  if (c01 === '/pmharness-copy tasks')         return cmdCopyAll();
+  if (c01 === '/pmharness-copy prd')           return cmdCopyPrd();
+  if (c01 === '/pmharness-copy export')        return cmdCopyExport();
+  if (c0 === '/pmharness-copy')                return fail('Usage: /pmharness-copy task &lt;n&gt; | /pmharness-copy tasks | /pmharness-copy prd | /pmharness-copy export');
 
   // Integrations
-  if (c0 === '/figma')               return cmdFigma(rest);
-  if (c01 === '/config jira')        return showModal('jira');
-  if (c01 === '/config linear')      return showModal('linear');
-  if (c0 === '/config')              return fail('Usage: /config jira | /config linear');
-  if (c01 === '/push jira')          return cmdPush('jira');
-  if (c01 === '/push linear')        return cmdPush('linear');
-  if (c0 === '/push')                return cmdPush(S.pmTool);
+  if (c0 === '/pmharness-figma')               return cmdFigma(rest);
+  if (c01 === '/pmharness-config agent')       return showConfigModal('agent');
+  if (c01 === '/pmharness-config pmtool')      return showConfigModal('pmtool');
+  if (c01 === '/pmharness-config figma')       return showConfigModal('figma');
+  if (c01 === '/pmharness-config jira')        return showConfigModal('pmtool', 'jira');
+  if (c01 === '/pmharness-config linear')      return showConfigModal('pmtool', 'linear');
+  if (c0 === '/pmharness-config')              return showConfigModal('agent');
+  if (c01 === '/pmharness-push jira')          return cmdPush('jira');
+  if (c01 === '/pmharness-push linear')        return cmdPush('linear');
+  if (c0 === '/pmharness-push')                return cmdPush(S.pmTool);
 
-  fail('Unknown command: <strong>' + input + '</strong>  —  type /help to see all commands');
+  fail('Unknown command: <strong>' + input + '</strong>  —  type /pmharness-help to see all commands');
 }
 
-// ── /help ─────────────────────────────────────────────────────────
+// ── /pmharness-help ─────────────────────────────────────────────────────────
 function cmdHelp(filter) {
   sep();
   if (filter) {
@@ -811,11 +1086,11 @@ function cmdHelp(filter) {
   } else {
     hdr('PM Harness CLI  —  All Commands');
     const groups = [
-      { g: 'Product Context',  cs: ['/init','/set vision','/set stack','/set users','/set sprint','/ctx'] },
-      { g: 'AI Pipeline',      cs: ['/epics','/epics list','/epic','/stories','/stories list','/story','/tasks','/tasks list','/task'] },
-      { g: 'Copy & Export',    cs: ['/copy task','/copy tasks','/copy export','/export'] },
-      { g: 'Integrations',     cs: ['/figma','/config jira','/config linear','/push','/push jira','/push linear','/status'] },
-      { g: 'Utilities',        cs: ['/help','/clear','/reset'] },
+      { g: 'Product Context',  cs: ['/pmharness-import','/pmharness-init','/pmharness-set vision','/pmharness-set stack','/pmharness-set users','/pmharness-set sprint','/pmharness-ctx'] },
+      { g: 'AI Pipeline',      cs: ['/pmharness-epics','/pmharness-epics list','/pmharness-epic','/pmharness-stories','/pmharness-stories list','/pmharness-story','/pmharness-usecases','/pmharness-usecases list','/pmharness-usecase','/pmharness-prd','/pmharness-prd view','/pmharness-tasks','/pmharness-tasks list','/pmharness-task'] },
+      { g: 'Copy & Export',    cs: ['/pmharness-copy task','/pmharness-copy tasks','/pmharness-copy prd','/pmharness-copy export','/pmharness-export'] },
+      { g: 'Integrations',     cs: ['/pmharness-figma','/pmharness-config','/pmharness-config agent','/pmharness-config pmtool','/pmharness-config figma','/pmharness-push','/pmharness-push jira','/pmharness-push linear','/pmharness-status'] },
+      { g: 'Utilities',        cs: ['/pmharness-help','/pmharness-clear','/pmharness-reset'] },
     ];
     groups.forEach(grp => {
       dim('');
@@ -826,34 +1101,173 @@ function cmdHelp(filter) {
       });
     });
     dim('');
-    dim('  Tip: /help &lt;keyword&gt; filters commands, e.g. /help push');
+    dim('  Tip: /pmharness-help &lt;keyword&gt; filters commands, e.g. /pmharness-help push');
   }
   sep();
 }
 
-// ── /init ─────────────────────────────────────────────────────────
-function cmdInit(name) {
-  if (!name) { fail('Usage: /init &lt;product name&gt;'); return; }
-  S.name = name;
-  ok(`Product "<strong>${name}</strong>" initialized`);
-  dim('  Next → /set vision &lt;problem description&gt;');
+// ── /pmharness-import ───────────────────────────────────────────────────────
+
+/** Opens the file picker (triggered by /pmharness-import command or 📎 button). */
+function cmdImport() {
+  const fi = document.getElementById('file-inp');
+  fi.value = '';          // reset so re-selecting same file fires onchange
+  fi.click();
+}
+
+/**
+ * Attempt to extract readable text from a .docx (ZIP + XML) without a library.
+ * DOCX stores content in word/document.xml. The XML may be compressed (deflate)
+ * or stored uncompressed depending on the authoring tool. We scan the raw bytes
+ * for w:t element content; if too little is found we return null and warn.
+ */
+function extractDocxText(arrayBuffer) {
+  try {
+    const str = new TextDecoder('utf-8', { fatal: false }).decode(new Uint8Array(arrayBuffer));
+    const matches = [...str.matchAll(/<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g)];
+    if (matches.length < 5) return null;
+    return matches.map(m => m[1]).join(' ').replace(/\s+/g, ' ').trim();
+  } catch { return null; }
+}
+
+/** Read a file and return { kind, content } ready to pass to Claude. */
+async function readImportFile(file) {
+  const ext = file.name.split('.').pop().toLowerCase();
+
+  if (ext === 'pdf') {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = e => resolve({ kind: 'pdf', content: e.target.result.split(',')[1] });
+      r.onerror = reject;
+      r.readAsDataURL(file);
+    });
+  }
+
+  if (ext === 'docx') {
+    return new Promise((resolve, reject) => {
+      const r = new FileReader();
+      r.onload  = e => resolve({ kind: 'docx', content: extractDocxText(e.target.result) });
+      r.onerror = reject;
+      r.readAsArrayBuffer(file);
+    });
+  }
+
+  // .txt / .md
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload  = e => resolve({ kind: 'text', content: e.target.result });
+    r.onerror = reject;
+    r.readAsText(file);
+  });
+}
+
+/** Called by the hidden <input type="file"> onchange. */
+async function handleFileImport(file) {
+  if (!file) return;
+  sep();
+  const kb = (file.size / 1024).toFixed(1);
+  info(`  Importing <strong>${file.name}</strong>  <span style="color:var(--text-3)">${kb} KB</span>`);
+
+  let parsed;
+  try { parsed = await readImportFile(file); }
+  catch (ex) { fail('Could not read file: ' + ex.message); sep(); return; }
+
+  if (parsed.kind === 'docx' && !parsed.content) {
+    warn('DOCX text extraction was limited — the document may use compressed XML.');
+    dim('  For best results, export your document as PDF or save as .txt/.md.');
+    sep();
+    return;
+  }
+
+  if (parsed.kind === 'pdf' && S.config.provider === 'openai') {
+    warn('PDF import requires an Anthropic model.');
+    dim('  OpenAI models do not support native PDF reading.');
+    dim('  Export your document as .txt or .md, or switch to Claude in /pmharness-config agent.');
+    sep();
+    return;
+  }
+
+  const ld = loader();
+  const extractPrompt = `Extract product context from the specification document.
+Return ONLY a JSON object with these keys (use null for any field not found):
+{
+  "name":   "product or project name",
+  "vision": "the core problem being solved or the product vision statement",
+  "stack":  "the technical stack (languages, frameworks, services)",
+  "users":  "the target users or personas",
+  "sprint": "the current sprint focus, milestone, or near-term scope"
+}`;
+
+  try {
+    const extraContent = parsed.kind === 'pdf'
+      ? [{ type: 'document', source: { type: 'base64', media_type: 'application/pdf', data: parsed.content } }]
+      : null;
+
+    const userMsg = parsed.kind === 'pdf'
+      ? extractPrompt
+      : `Document content:\n\n${parsed.content}\n\n${extractPrompt}`;
+
+    const data  = await claude(
+      'You extract structured product context from specification documents. Respond ONLY with pure JSON — no markdown, no backticks.',
+      userMsg,
+      null,
+      600,
+      extraContent
+    );
+    rmLoader(ld);
+
+    const fields = parseJ(getText(data));
+    if (!fields) { fail('Could not parse extracted context. Try again.'); sep(); return; }
+
+    // Store in state so the modal apply handler can read them
+    S._pendingImport = fields;
+    showModal('import');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); sep(); }
+}
+
+function applyImport() {
+  const name   = document.getElementById('mi-name')?.value.trim()   || '';
+  const vision = document.getElementById('mi-vision')?.value.trim() || '';
+  const stack  = document.getElementById('mi-stack')?.value.trim()  || '';
+  const users  = document.getElementById('mi-users')?.value.trim()  || '';
+  const sprint = document.getElementById('mi-sprint')?.value.trim() || '';
+  closeModal();
+  if (name)   { S.name   = name;   ok(`name   → ${name}`); }
+  if (vision) { S.vision = vision; ok(`vision → ${clip(vision, 60)}`); }
+  if (stack)  { S.stack  = stack;  ok(`stack  → ${stack}`); }
+  if (users)  { S.users  = users;  ok(`users  → ${clip(users, 60)}`); }
+  if (sprint) { S.sprint = sprint; ok(`sprint → ${clip(sprint, 60)}`); }
+  const filled = [name, vision, stack, users, sprint].filter(Boolean).length;
+  sep();
+  ok(`${filled} field${filled !== 1 ? 's' : ''} imported from document`);
+  dim('  Review with /pmharness-ctx  ·  Continue with /pmharness-figma or /pmharness-epics');
+  sep();
   syncPanel();
 }
 
-// ── /set ──────────────────────────────────────────────────────────
+// ── /pmharness-init ─────────────────────────────────────────────────────────
+function cmdInit(name) {
+  if (!name) { fail('Usage: /pmharness-init &lt;product name&gt;'); return; }
+  S.name = name;
+  ok(`Product "<strong>${name}</strong>" initialized`);
+  dim('  Next → /pmharness-set vision &lt;problem description&gt;');
+  syncPanel();
+}
+
+// ── /pmharness-set ──────────────────────────────────────────────────────────
 function cmdSet(field, val) {
-  if (!val) { fail('Value required — usage: /set ' + field + ' &lt;value&gt;'); return; }
+  if (!val) { fail('Value required — usage: /pmharness-set ' + field + ' &lt;value&gt;'); return; }
   S[field] = val;
   ok(`${field} → <span style="color:var(--text-1)">${clip(val, 72)}</span>`);
   syncPanel();
 }
 function cmdSetHelp() {
-  info('  Usage: /set &lt;field&gt; &lt;value&gt;');
+  info('  Usage: /pmharness-set &lt;field&gt; &lt;value&gt;');
   dim('  Fields: vision, stack, users, sprint');
-  dim('  Example: /set stack Next.js + Supabase');
+  dim('  Example: /pmharness-set stack Next.js + Supabase');
 }
 
-// ── /ctx ──────────────────────────────────────────────────────────
+// ── /pmharness-ctx ──────────────────────────────────────────────────────────
 function cmdCtx() {
   sep();
   hdr('Current product context');
@@ -871,11 +1285,11 @@ function cmdCtx() {
   sep();
 }
 
-// ── /epics ────────────────────────────────────────────────────────
+// ── /pmharness-epics ────────────────────────────────────────────────────────
 async function cmdGenEpics() {
   if (!S.name || !S.vision) {
     fail('Insufficient context.');
-    dim('  Run: /init &lt;name&gt;  and  /set vision &lt;text&gt;');
+    dim('  Run: /pmharness-init &lt;name&gt;  and  /pmharness-set vision &lt;text&gt;');
     return;
   }
   sep();
@@ -892,19 +1306,19 @@ async function cmdGenEpics() {
     S.epics = parsed;
     ok(`${S.epics.length} epics generated for <strong>${S.name}</strong>`);
     sep();
-    hdr('Epics  —  type /epic &lt;n&gt; to select one');
+    hdr('Epics  —  type /pmharness-epic &lt;n&gt; to select one');
     S.epics.forEach((e, i) => {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  <strong>${e.title}</strong>  ${priTag(e.priority)}`);
       dim('       ' + clip(e.description, 74));
     });
     dim('');
-    dim('  Next → /epic 1');
+    dim('  Next → /pmharness-epic 1');
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
 
 function cmdEpicsList() {
-  if (!S.epics.length) { fail('No epics yet. Run /epics to generate them.'); return; }
+  if (!S.epics.length) { fail('No epics yet. Run /pmharness-epics to generate them.'); return; }
   sep(); hdr('Epics');
   S.epics.forEach((e, i) => {
     const active = S.selEpic === e.id ? ' <span style="color:var(--teal)">◀ active</span>' : '';
@@ -916,21 +1330,21 @@ function cmdEpicsList() {
 function cmdSelectEpic(arg) {
   const n = parseInt(arg);
   if (isNaN(n) || n < 1 || n > S.epics.length) {
-    fail('Invalid number. Use /epics list to see the list.'); return;
+    fail('Invalid number. Use /pmharness-epics list to see the list.'); return;
   }
   const e = S.epics[n - 1];
-  S.selEpic = e.id; S.stories = []; S.tasks = [];
+  S.selEpic = e.id; S.stories = []; S.usecases = []; S.tasks = [];
   sep();
   ok(`Active epic: <strong>${e.title}</strong>  ${priTag(e.priority)}`);
   info('  ' + clip(e.description, 92));
   if (e.tags?.length) dim('  Tags: ' + e.tags.join(', '));
-  dim('  Next → /stories');
+  dim('  Next → /pmharness-stories');
   sep(); syncPanel();
 }
 
-// ── /stories ──────────────────────────────────────────────────────
+// ── /pmharness-stories ──────────────────────────────────────────────────────
 async function cmdGenStories() {
-  if (S.selEpic == null) { fail('No active epic. Run /epic &lt;n&gt; first.'); return; }
+  if (S.selEpic == null) { fail('No active epic. Run /pmharness-epic &lt;n&gt; first.'); return; }
   const epic = S.epics.find(e => e.id === S.selEpic);
   sep();
   const ld  = loader();
@@ -946,17 +1360,17 @@ async function cmdGenStories() {
     S.stories = parsed;
     ok(`${S.stories.length} user stories generated for "<strong>${epic.title}</strong>"`);
     sep();
-    hdr('User Stories  —  type /story &lt;n&gt; for full detail');
+    hdr('User Stories  —  type /pmharness-story &lt;n&gt; for full detail');
     S.stories.forEach((s, i) => {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want <em>${clip(s.action, 42)}</em>  ${sizeTag(s.complexity)}`);
     });
-    dim('  Next → /tasks');
+    dim('  Next → /pmharness-tasks');
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
 
 function cmdStoriesList() {
-  if (!S.stories.length) { fail('No stories yet. Run /stories to generate them.'); return; }
+  if (!S.stories.length) { fail('No stories yet. Run /pmharness-stories to generate them.'); return; }
   sep(); hdr('User Stories');
   S.stories.forEach((s, i) => {
     info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want ${clip(s.action, 48)}  ${sizeTag(s.complexity)}`);
@@ -980,9 +1394,260 @@ function cmdStoryDetail(arg) {
   sep();
 }
 
-// ── /tasks ────────────────────────────────────────────────────────
+// ── /pmharness-usecases ─────────────────────────────────────────────────────
+async function cmdGenUseCases() {
+  if (S.selEpic == null) { fail('No active epic. Run /pmharness-epic &lt;n&gt; first.'); return; }
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  sep();
+  const ld  = loader();
+  const fig = S.figmaCtx ? '\nUI design context (Figma): ' + (S.figmaCtx.details || S.figmaCtx.summary) : '';
+  const storyCtx = S.stories.length
+    ? '\nUser stories already defined:\n' + S.stories.map(s => `- As a ${s.role}: ${s.action}`).join('\n')
+    : '';
+  try {
+    const data = await claude(
+      'You are an expert systems analyst and product manager. Respond ONLY with pure JSON — no markdown, no backticks.',
+      `Product: ${S.name}\nStack: ${S.stack}\nUsers: ${S.users}\nEpic: ${epic.title}\n${epic.description}${storyCtx}${fig}\n\nGenerate 3-4 use cases. JSON array: [{"id":1,"title":"...","actor":"...","preconditions":["..."],"mainFlow":["Step 1: ..."],"alternativeFlows":[{"condition":"...","steps":["..."]}],"postconditions":["..."]}]`
+    );
+    rmLoader(ld);
+    const parsed = parseJ(getText(data));
+    if (!parsed) { fail('Could not parse use cases.'); return; }
+    S.usecases = parsed;
+    ok(`${S.usecases.length} use cases generated for "<strong>${epic.title}</strong>"`);
+    sep();
+    hdr('Use Cases  —  type /pmharness-usecase &lt;n&gt; for full detail');
+    S.usecases.forEach((u, i) => {
+      info(`  <span style="color:var(--text-2)">[${i+1}]</span>  <strong>${u.title}</strong>  <span style="color:var(--text-2)">· actor: ${u.actor}</span>`);
+    });
+    dim('  Next → /pmharness-tasks');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
+  sep(); syncPanel();
+}
+
+function cmdUseCasesList() {
+  if (!S.usecases.length) { fail('No use cases yet. Run /pmharness-usecases to generate them.'); return; }
+  sep(); hdr('Use Cases');
+  S.usecases.forEach((u, i) => {
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${u.title}  <span style="color:var(--text-3)">· ${u.actor}</span>`);
+  });
+  sep();
+}
+
+function cmdUseCaseDetail(arg) {
+  const n = parseInt(arg);
+  if (isNaN(n) || n < 1 || n > S.usecases.length) { fail('Invalid number.'); return; }
+  const u = S.usecases[n - 1];
+  sep(); hdr('Use Case #' + n + ': ' + u.title);
+  info(`  Actor: <strong>${u.actor}</strong>`);
+  if (u.preconditions?.length) {
+    dim(''); dim('  Preconditions:');
+    u.preconditions.forEach(p => dim('    · ' + p));
+  }
+  if (u.mainFlow?.length) {
+    dim(''); teal('  Main Flow:');
+    u.mainFlow.forEach(s => info('    ' + s));
+  }
+  if (u.alternativeFlows?.length) {
+    dim(''); teal('  Alternative Flows:');
+    u.alternativeFlows.forEach(af => {
+      info(`    <span style="color:var(--text-warn)">↳ ${af.condition}</span>`);
+      (af.steps || []).forEach(s => dim('       ' + s));
+    });
+  }
+  if (u.postconditions?.length) {
+    dim(''); dim('  Postconditions:');
+    u.postconditions.forEach(p => dim('    ✓ ' + p));
+  }
+  sep();
+}
+
+// ── /pmharness-prd ──────────────────────────────────────────────────────────
+async function cmdGenPrd() {
+  if (!S.name || !S.vision) {
+    fail('Insufficient context.');
+    dim('  Run /pmharness-init &lt;name&gt; and /pmharness-set vision &lt;text&gt; first.');
+    return;
+  }
+  sep();
+  const ld = loader();
+
+  const epicsSec = S.epics.length
+    ? '\nEpics:\n' + S.epics.map(e => `- [${e.priority}] ${e.title}: ${e.description}`).join('\n')
+    : '';
+  const storiesSec = S.stories.length
+    ? '\nUser Stories:\n' + S.stories.map(s => `- As a ${s.role}, I want to ${s.action} so that ${s.benefit}`).join('\n')
+    : '';
+  const ucSec = S.usecases.length
+    ? '\nUse Cases:\n' + S.usecases.map(u => `- ${u.title} (actor: ${u.actor})`).join('\n')
+    : '';
+  const figSec = S.figmaCtx
+    ? '\nDesign context (Figma): ' + (S.figmaCtx.details || S.figmaCtx.summary)
+    : '';
+
+  try {
+    const data = await claude(
+      'You are a senior product manager writing a Product Requirements Document. Be specific and concrete. Respond ONLY with pure JSON — no markdown, no backticks.',
+      `Product: ${S.name}
+Vision: ${S.vision}
+Stack: ${S.stack}
+Target users: ${S.users}
+Sprint focus: ${S.sprint}${epicsSec}${storiesSec}${ucSec}${figSec}
+
+Generate a PRD. JSON object:
+{
+  "title": "...",
+  "version": "1.0",
+  "overview": "2-3 sentence executive summary",
+  "problemStatement": "clear description of the problem being solved",
+  "goals": ["measurable goal 1", ...],
+  "successMetrics": ["metric 1", ...],
+  "personas": [{"name": "...", "description": "..."}],
+  "features": [{"title": "...", "description": "...", "priority": "high|medium|low", "requirements": ["..."]}],
+  "outOfScope": ["..."],
+  "technicalConsiderations": ["..."],
+  "risks": [{"risk": "...", "mitigation": "..."}],
+  "openQuestions": ["..."]
+}`,
+      undefined,
+      2500
+    );
+    rmLoader(ld);
+    const parsed = parseJ(getText(data));
+    if (!parsed) { fail('Could not parse PRD. Try again.'); return; }
+    S.prd = parsed;
+    ok(`PRD generated: <strong>${parsed.title}</strong>  v${parsed.version || '1.0'}`);
+    sep();
+    renderPrd(parsed);
+    dim('  → /pmharness-prd view  to re-display  ·  /pmharness-copy prd  to copy as Markdown');
+  } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
+  sep(); syncPanel();
+}
+
+function cmdPrdView() {
+  if (!S.prd) { fail('No PRD yet. Run /pmharness-prd to generate one.'); return; }
+  sep();
+  renderPrd(S.prd);
+  dim('  → /pmharness-copy prd  to copy as Markdown');
+  sep();
+}
+
+function renderPrd(p) {
+  hdr(`PRD: ${p.title}  v${p.version || '1.0'}`);
+
+  teal('  Overview');
+  info('    ' + p.overview);
+
+  teal('  Problem Statement');
+  info('    ' + p.problemStatement);
+
+  if (p.goals?.length) {
+    teal('  Goals');
+    p.goals.forEach(g => info('    · ' + g));
+  }
+  if (p.successMetrics?.length) {
+    teal('  Success Metrics');
+    p.successMetrics.forEach(m => dim('    · ' + m));
+  }
+  if (p.personas?.length) {
+    teal('  Personas');
+    p.personas.forEach(pe => {
+      info(`    <strong>${pe.name}</strong>`);
+      dim('      ' + pe.description);
+    });
+  }
+  if (p.features?.length) {
+    teal('  Features');
+    p.features.forEach(f => {
+      const tag = f.priority === 'high'
+        ? '<span class="tag t-high">HIGH</span>'
+        : f.priority === 'medium'
+          ? '<span class="tag t-med">MED</span>'
+          : '<span class="tag t-low">LOW</span>';
+      info(`    <strong>${f.title}</strong>  ${tag}`);
+      dim('      ' + f.description);
+      (f.requirements || []).forEach(r => dim('        ✓ ' + r));
+    });
+  }
+  if (p.outOfScope?.length) {
+    teal('  Out of Scope');
+    p.outOfScope.forEach(o => dim('    ✗ ' + o));
+  }
+  if (p.technicalConsiderations?.length) {
+    teal('  Technical Considerations');
+    p.technicalConsiderations.forEach(t => dim('    · ' + t));
+  }
+  if (p.risks?.length) {
+    teal('  Risks');
+    p.risks.forEach(r => {
+      info(`    <span style="color:var(--text-warn)">⚠ ${r.risk}</span>`);
+      dim('      → ' + r.mitigation);
+    });
+  }
+  if (p.openQuestions?.length) {
+    teal('  Open Questions');
+    p.openQuestions.forEach(q => dim('    ? ' + q));
+  }
+}
+
+function cmdCopyPrd() {
+  if (!S.prd) { fail('No PRD yet. Run /pmharness-prd to generate one.'); return; }
+  const p = S.prd;
+  const lines = [
+    `# ${p.title}`,
+    `**Version:** ${p.version || '1.0'}  |  **Product:** ${S.name}`,
+    '',
+    '## Overview',
+    p.overview,
+    '',
+    '## Problem Statement',
+    p.problemStatement,
+  ];
+  if (p.goals?.length) {
+    lines.push('', '## Goals');
+    p.goals.forEach(g => lines.push('- ' + g));
+  }
+  if (p.successMetrics?.length) {
+    lines.push('', '## Success Metrics');
+    p.successMetrics.forEach(m => lines.push('- ' + m));
+  }
+  if (p.personas?.length) {
+    lines.push('', '## Personas');
+    p.personas.forEach(pe => lines.push(`**${pe.name}:** ${pe.description}`));
+  }
+  if (p.features?.length) {
+    lines.push('', '## Features');
+    p.features.forEach(f => {
+      lines.push(`### ${f.title} [${(f.priority || 'medium').toUpperCase()}]`);
+      lines.push(f.description);
+      (f.requirements || []).forEach(r => lines.push('- ' + r));
+      lines.push('');
+    });
+  }
+  if (p.outOfScope?.length) {
+    lines.push('## Out of Scope');
+    p.outOfScope.forEach(o => lines.push('- ' + o));
+  }
+  if (p.technicalConsiderations?.length) {
+    lines.push('', '## Technical Considerations');
+    p.technicalConsiderations.forEach(t => lines.push('- ' + t));
+  }
+  if (p.risks?.length) {
+    lines.push('', '## Risks');
+    p.risks.forEach(r => lines.push(`**${r.risk}:** ${r.mitigation}`));
+  }
+  if (p.openQuestions?.length) {
+    lines.push('', '## Open Questions');
+    p.openQuestions.forEach(q => lines.push('- ' + q));
+  }
+  navigator.clipboard.writeText(lines.join('\n'))
+    .then(() => ok('PRD copied as Markdown ✓'));
+}
+
+// ── /pmharness-tasks ────────────────────────────────────────────────────────
 async function cmdGenTasks() {
-  if (!S.stories.length) { fail('No stories yet. Run /stories first.'); return; }
+  if (!S.stories.length && !S.usecases.length) {
+    fail('No stories or use cases yet. Run /pmharness-stories or /pmharness-usecases first.'); return;
+  }
   const epic = S.epics.find(e => e.id === S.selEpic);
   sep();
   const ld  = loader();
@@ -991,10 +1656,26 @@ async function cmdGenTasks() {
       + (S.figmaCtx.details || S.figmaCtx.summary)
       + '\nThe code agent MUST follow these visual specifications in its implementation.'
     : '';
+  const storySection = S.stories.length
+    ? `\nUser Stories:\n${S.stories.map((s, i) => `[${i+1}] As a ${s.role}: ${s.action}`).join('\n')}`
+    : '';
+  const ucSection = S.usecases.length
+    ? `\nUse Cases:\n${S.usecases.map((u, i) => `[${i+1}] ${u.title} (actor: ${u.actor})`).join('\n')}`
+    : '';
+  const agentHints = {
+    'claude-code': 'Format each agentPrompt for the Claude Code CLI. Reference file paths explicitly, use imperative instructions, and suggest slash commands where appropriate.',
+    'codex':       'Format each agentPrompt for OpenAI Codex. Be explicit about function signatures, file structure, and expected code changes.',
+    'open-code':   'Format each agentPrompt for Open Code agent. Use clear file-based task decomposition with explicit paths.',
+    'copilot':     'Format each agentPrompt for GitHub Copilot. Focus on inline context, code completion patterns, and clear before/after expectations.',
+    'aider':       'Format each agentPrompt for Aider. Lead with the specific files to edit, then describe the changes needed.',
+    'cursor':      'Format each agentPrompt for Cursor. Include file references, describe UI and logic changes precisely, use the /edit pattern where applicable.',
+    'generic':     'Write prompts that work with any code agent.',
+  };
+  const agentHint = agentHints[S.config.targetAgent] || agentHints.generic;
   try {
     const data = await claude(
-      'You are an expert at writing structured prompts for AI code agents (Claude Code, Codex, Open Code, Aider). Write precise, actionable, well-contextualized prompts. Respond ONLY with pure JSON — no markdown, no backticks.',
-      `Product: ${S.name}\nStack: ${S.stack}\nEpic: ${epic?.title || ''}\n\nUser Stories:\n${S.stories.map((s, i) => `[${i+1}] As a ${s.role}: ${s.action}`).join('\n')}${fig}\n\nGenerate 3-4 code agent tasks. JSON array: [{"id":1,"title":"...","agentPrompt":"...","context":"...","constraints":["..."],"expectedOutput":"...","estimatedTokens":"low"|"medium"|"high"}]`
+      `You are an expert at writing structured prompts for AI code agents. ${agentHint} Respond ONLY with pure JSON — no markdown, no backticks.`,
+      `Product: ${S.name}\nStack: ${S.stack}\nEpic: ${epic?.title || ''}${storySection}${ucSection}${fig}\n\nGenerate 3-4 code agent tasks. JSON array: [{"id":1,"title":"...","agentPrompt":"...","context":"...","constraints":["..."],"expectedOutput":"...","estimatedTokens":"low"|"medium"|"high"}]`
     );
     rmLoader(ld);
     const parsed = parseJ(getText(data));
@@ -1002,18 +1683,18 @@ async function cmdGenTasks() {
     S.tasks = parsed;
     ok(`${S.tasks.length} agent tasks generated${S.figmaCtx ? ' (with Figma context)' : ''}`);
     sep();
-    hdr('Agent Tasks  —  type /task &lt;n&gt; to see the full prompt');
+    hdr('Agent Tasks  —  type /pmharness-task &lt;n&gt; to see the full prompt');
     S.tasks.forEach((t, i) => {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 52)}  ${ctxTag(t.estimatedTokens)}`);
     });
     dim('');
-    dim('  Next: /copy task &lt;n&gt;  ·  /copy tasks  ·  /push jira  ·  /push linear');
+    dim('  Next: /pmharness-copy task &lt;n&gt;  ·  /pmharness-copy tasks  ·  /pmharness-push jira  ·  /pmharness-push linear');
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
 
 function cmdTasksList() {
-  if (!S.tasks.length) { fail('No tasks yet. Run /tasks to generate them.'); return; }
+  if (!S.tasks.length) { fail('No tasks yet. Run /pmharness-tasks to generate them.'); return; }
   sep(); hdr('Agent Tasks');
   S.tasks.forEach((t, i) => {
     const pushed = S.pushed[t.id] ? `  <span class="tag t-teal">↑ ${S.pushed[t.id]}</span>` : '';
@@ -1025,7 +1706,7 @@ function cmdTasksList() {
 function cmdTaskDetail(arg) {
   const n = parseInt(arg);
   if (isNaN(n) || n < 1 || n > S.tasks.length) {
-    fail('Invalid number. Use /tasks list to see the list.'); return;
+    fail('Invalid number. Use /pmharness-tasks list to see the list.'); return;
   }
   const t = S.tasks[n - 1];
   sep(); hdr(`Task #${n}: ${t.title}`);
@@ -1038,11 +1719,11 @@ function cmdTaskDetail(arg) {
     t.constraints.forEach(c => L(`  <span style="color:var(--text-warn)">⚠</span>  ${c}`, 'l-dim'));
   }
   if (t.expectedOutput) dim('  Expected output: ' + clip(t.expectedOutput, 72));
-  dim(`  → /copy task ${n}  to copy this prompt to the clipboard`);
+  dim(`  → /pmharness-copy task ${n}  to copy this prompt to the clipboard`);
   sep();
 }
 
-// ── /copy ─────────────────────────────────────────────────────────
+// ── /pmharness-copy ─────────────────────────────────────────────────────────
 function cmdCopyTask(arg) {
   const n = parseInt(arg);
   if (isNaN(n) || n < 1 || n > S.tasks.length) { fail('Invalid number.'); return; }
@@ -1078,12 +1759,20 @@ function cmdCopyExport() {
     .then(() => ok('Full Markdown spec copied to clipboard ✓'));
 }
 
-// ── /figma ────────────────────────────────────────────────────────
+// ── /pmharness-figma ────────────────────────────────────────────────────────
 async function cmdFigma(input) {
+  if (S.config.provider === 'openai') {
+    sep();
+    warn('Figma MCP requires an Anthropic model.');
+    dim('  MCP server integrations are not available with OpenAI models.');
+    dim('  Switch to Claude in /pmharness-config agent to enable Figma context extraction.');
+    sep();
+    return;
+  }
   let key = input.trim();
   if (!key) { showModal('figma'); return; }
   // Accept full URL or bare file key
-  const m = key.match(/figma\.com\/(?:file|design)\/([A-Za-z0-9]+)/);
+  const m = key.match(/pmharness-figma\.com\/(?:file|design)\/([A-Za-z0-9]+)/);
   if (m) key = m[1];
 
   sep();
@@ -1103,7 +1792,7 @@ async function cmdFigma(input) {
     ok('Figma connected ✓  —  ' + clip(S.figmaCtx.summary, 64));
     if (S.figmaCtx.components?.length) dim('  Components: ' + S.figmaCtx.components.slice(0,6).join(', '));
     if (S.figmaCtx.flows?.length)      dim('  UI flows:   ' + S.figmaCtx.flows.slice(0,4).join(', '));
-    dim('  Design context will be injected automatically into /epics, /stories, and /tasks');
+    dim('  Design context will be injected automatically into /pmharness-epics, /pmharness-stories, and /pmharness-tasks');
   } catch (ex) {
     rmLoader(ld);
     // Graceful fallback: register manually so downstream prompts at least reference the file
@@ -1115,16 +1804,24 @@ async function cmdFigma(input) {
   sep(); syncPanel();
 }
 
-// ── /push ─────────────────────────────────────────────────────────
+// ── /pmharness-push ─────────────────────────────────────────────────────────
 async function cmdPush(tool) {
-  if (!tool) {
-    fail('No PM tool configured.');
-    dim('  Run /config jira  or  /config linear  to set one up.');
+  if (S.config.provider === 'openai') {
+    sep();
+    warn('Jira/Linear push requires an Anthropic model.');
+    dim('  MCP server integrations are not available with OpenAI models.');
+    dim('  Switch to Claude in /pmharness-config agent to push tasks to your PM tool.');
+    sep();
     return;
   }
-  if (!S.tasks.length)               { fail('No tasks to push. Run /tasks first.'); return; }
-  if (tool === 'jira'   && !S.jira.token)   { showModal('jira');   return; }
-  if (tool === 'linear' && !S.linear.apiKey){ showModal('linear'); return; }
+  if (!tool) {
+    fail('No PM tool configured.');
+    dim('  Run /pmharness-config jira  or  /pmharness-config linear  to set one up.');
+    return;
+  }
+  if (!S.tasks.length)               { fail('No tasks to push. Run /pmharness-tasks first.'); return; }
+  if (tool === 'jira'   && !S.jira.token)   { showConfigModal('pmtool', 'jira');   return; }
+  if (tool === 'linear' && !S.linear.apiKey){ showConfigModal('pmtool', 'linear'); return; }
 
   sep();
   warn(`Pushing ${S.tasks.length} tasks to ${tool === 'jira' ? 'Jira' : 'Linear'} ...`);
@@ -1151,7 +1848,7 @@ async function cmdPush(tool) {
   sep(); syncPanel();
 }
 
-// ── /export ───────────────────────────────────────────────────────
+// ── /pmharness-export ───────────────────────────────────────────────────────
 function cmdExport() {
   const epic = S.epics.find(e => e.id === S.selEpic);
   sep(); hdr('Full spec — ' + (S.name || 'No product'));
@@ -1177,26 +1874,43 @@ function cmdExport() {
     });
   }
   dim('');
-  dim('  → /copy export  to copy the full Markdown spec to clipboard');
+  dim('  → /pmharness-copy export  to copy the full Markdown spec to clipboard');
   sep();
 }
 
-// ── /status ───────────────────────────────────────────────────────
+// ── /pmharness-status ───────────────────────────────────────────────────────
 function cmdStatus() {
-  sep(); hdr('Integration status');
-  info(`  Figma     <span style="color:${S.figmaCtx ? 'var(--teal)':'var(--text-3)'}">${S.figmaCtx ? '✓ ' + S.figmaKey : 'not connected  —  /figma &lt;url&gt;'}</span>`);
-  info(`  Jira      <span style="color:${S.jira.token ? 'var(--teal)':'var(--text-3)'}">${S.jira.token ? '✓ ' + S.jira.domain : 'not configured  —  /config jira'}</span>`);
-  info(`  Linear    <span style="color:${S.linear.apiKey ? 'var(--teal)':'var(--text-3)'}">${S.linear.apiKey ? '✓ configured' : 'not configured  —  /config linear'}</span>`);
-  info(`  Active PM <span style="color:${S.pmTool?'var(--teal)':'var(--text-3)'}">${S.pmTool || 'none'}</span>`);
-  info(`  Pushed    <span style="color:var(--text-2)">${Object.keys(S.pushed).length} tasks</span>`);
+  sep(); hdr('Status');
+  teal('  Agent');
+  const allModels = [...MODELS, ...OPENAI_MODELS];
+  const ml = (allModels.find(m => m.id === S.config.model) || MODELS[0]).label;
+  const al = (TARGET_AGENTS.find(a => a.id === S.config.targetAgent) || TARGET_AGENTS[0]).label;
+  const isOpenAI = S.config.provider === 'openai';
+  info(`    Provider     <span style="color:var(--text-1)">${isOpenAI ? 'OpenAI' : 'Anthropic'}</span>`);
+  info(`    Model        <span style="color:var(--text-1)">${ml}</span>`);
+  info(`    Target agent <span style="color:var(--text-1)">${al}</span>`);
+  info(`    Max tokens   <span style="color:var(--text-1)">${S.config.maxTokens}</span>`);
+  if (isOpenAI) {
+    info(`    API key      <span style="color:${S.config.openaiKey ? 'var(--teal)':'var(--text-err)'}">${S.config.openaiKey ? 'set (session)' : 'not set — open /pmharness-config agent'}</span>`);
+  } else {
+    info(`    API key      <span style="color:${S.config.apiKey ? 'var(--teal)':'var(--text-3)'}">${S.config.apiKey ? 'set (session)' : 'not set — using Claude.ai proxy'}</span>`);
+  }
+  teal('  Integrations' + (isOpenAI ? '  <span style="color:var(--text-3);font-size:9px">(MCP requires Anthropic)</span>' : ''));
+  info(`    Figma   <span style="color:${S.figmaCtx ? 'var(--teal)': isOpenAI ? 'var(--text-3)':'var(--text-3)'}">${S.figmaCtx ? '✓ ' + S.figmaKey : isOpenAI ? 'unavailable (OpenAI mode)' : 'not connected  —  /pmharness-config figma'}</span>`);
+  info(`    Jira    <span style="color:${S.jira.token && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.jira.token && !isOpenAI ? '✓ ' + S.jira.domain : isOpenAI ? 'unavailable (OpenAI mode)' : 'not configured  —  /pmharness-config pmtool'}</span>`);
+  info(`    Linear  <span style="color:${S.linear.apiKey && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.linear.apiKey && !isOpenAI ? '✓ configured' : isOpenAI ? 'unavailable (OpenAI mode)' : 'not configured  —  /pmharness-config pmtool'}</span>`);
+  info(`    Active  <span style="color:${S.pmTool && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.pmTool && !isOpenAI ? S.pmTool : 'none'}</span>`);
+  info(`    Pushed  <span style="color:var(--text-2)">${Object.keys(S.pushed).length} tasks</span>`);
+  dim('  → /pmharness-config to open configuration');
   sep();
 }
 
-// ── /reset ────────────────────────────────────────────────────────
+// ── /pmharness-reset ────────────────────────────────────────────────────────
 function cmdReset() {
   Object.assign(S, {
     name:'', vision:'', stack:'', users:'', sprint:'',
-    epics:[], selEpic:null, stories:[], tasks:[],
+    epics:[], selEpic:null, stories:[], usecases:[], prd:null, tasks:[],
+    // config intentionally preserved across resets
     figmaCtx:null, figmaKey:'', pmTool:null, pushed:{},
   });
   $out.innerHTML = '';
@@ -1208,12 +1922,262 @@ function cmdReset() {
 //  MODALS
 // ══════════════════════════════════════════════════════════════════
 
+// ══════════════════════════════════════════════════════════════════
+//  CONFIG MODAL (tabbed: Agent · PM Tool · Figma)
+// ══════════════════════════════════════════════════════════════════
+
+function showConfigModal(activeTab = 'agent', pmSubtool = null) {
+  // Build model options
+  const modelOpts = MODELS.map(m =>
+    `<option value="${m.id}" ${S.config.model === m.id ? 'selected' : ''}>${m.label}</option>`
+  ).join('');
+
+  // Build target agent options
+  const agentOpts = TARGET_AGENTS.map(a =>
+    `<option value="${a.id}" ${S.config.targetAgent === a.id ? 'selected' : ''}>${a.label}</option>`
+  ).join('');
+
+  // Which PM subtool to pre-select
+  const activePm = pmSubtool || S.pmTool || 'jira';
+
+  const esc = s => (s || '').replace(/"/g, '&quot;');
+
+  $modal.innerHTML = `
+    <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
+      <div class="modal" style="width:520px">
+        <div class="modal-head">
+          <span class="modal-title">Configuration</span>
+          <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+
+        <div class="tab-bar">
+          <button class="cfg-tab ${activeTab==='agent'  ?'active':''}" onclick="switchConfigTab('agent')">Agent</button>
+          <button class="cfg-tab ${activeTab==='pmtool' ?'active':''}" onclick="switchConfigTab('pmtool')">PM Tool</button>
+          <button class="cfg-tab ${activeTab==='figma'  ?'active':''}" onclick="switchConfigTab('figma')">Figma</button>
+        </div>
+
+        <!-- ── Agent tab ─────────────────────────────── -->
+        <div id="cfg-agent" class="tab-pane ${activeTab==='agent'?'active':''}">
+          <div class="field" style="margin-bottom:10px">
+            <label>AI Provider</label>
+            <div class="radio-row" style="margin-bottom:0">
+              <button class="radio-opt ${S.config.provider==='anthropic'?'active':''}" onclick="switchProvider('anthropic')">Anthropic</button>
+              <button class="radio-opt ${S.config.provider==='openai'?'active':''}" onclick="switchProvider('openai')">OpenAI</button>
+            </div>
+          </div>
+
+          <!-- Anthropic fields -->
+          <div id="ca-anthropic" style="${S.config.provider!=='anthropic'?'display:none':''}">
+            <div class="section-note">
+              API key is optional when running inside Claude.ai — the proxy handles auth automatically.
+              For self-hosting, enter your Anthropic key. Credentials are kept in sessionStorage only (cleared on tab close).
+            </div>
+            <div class="field">
+              <label>Anthropic API Key</label>
+              <input id="ca-key" type="password" placeholder="sk-ant-... (optional in Claude.ai)" value="${esc(S.config.apiKey)}">
+            </div>
+            <div class="field">
+              <label>Model</label>
+              <select id="ca-model">${modelOpts}</select>
+            </div>
+          </div>
+
+          <!-- OpenAI fields -->
+          <div id="ca-openai" style="${S.config.provider!=='openai'?'display:none':''}">
+            <div class="section-note">
+              OpenAI API key required for all calls. Note: Figma, Jira, and Linear MCP integrations
+              are Anthropic-only and will be unavailable. PDF import is also Anthropic-only.
+            </div>
+            <div class="field">
+              <label>OpenAI API Key</label>
+              <input id="ca-openai-key" type="password" placeholder="sk-..." value="${esc(S.config.openaiKey)}">
+            </div>
+            <div class="field">
+              <label>Model</label>
+              <select id="ca-openai-model">${OPENAI_MODELS.map(m => `<option value="${m.id}" ${S.config.model===m.id?'selected':''}>${m.label}</option>`).join('')}</select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Target Code Agent</label>
+            <select id="ca-agent">${agentOpts}</select>
+          </div>
+          <div class="field">
+            <label>Max tokens — standard calls (PRD uses 2.5×)</label>
+            <input id="ca-tokens" type="number" min="500" max="4000" step="100" value="${S.config.maxTokens || 1000}">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveAgentConfig()">Save</button>
+            <button class="btn" onclick="closeModal()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- ── PM Tool tab ───────────────────────────── -->
+        <div id="cfg-pmtool" class="tab-pane ${activeTab==='pmtool'?'active':''}">
+          <div class="radio-row">
+            <button class="radio-opt ${activePm==='jira'  ?'active':''}" onclick="selectPmSubtool('jira')">Jira</button>
+            <button class="radio-opt ${activePm==='linear'?'active':''}" onclick="selectPmSubtool('linear')">Linear</button>
+          </div>
+
+          <div id="pm-jira" style="${activePm!=='jira'?'display:none':''}">
+            <div class="field"><label>Atlassian Domain</label><input id="mj-d" placeholder="your-company.atlassian.net" value="${esc(S.jira.domain)}"></div>
+            <div class="field"><label>Email</label><input id="mj-e" placeholder="you@company.com" value="${esc(S.jira.email)}"></div>
+            <div class="field"><label>API Token</label><input id="mj-t" type="password" placeholder="ATATT3xFf…" value="${esc(S.jira.token)}"></div>
+            <div class="field"><label>Project Key</label><input id="mj-p" placeholder="MYAPP" value="${esc(S.jira.project)}"></div>
+            <p class="field-hint">Generate at id.atlassian.com → Security → API tokens. Project key is the prefix in issue numbers (e.g. MYAPP in MYAPP-42).</p>
+          </div>
+
+          <div id="pm-linear" style="${activePm!=='linear'?'display:none':''}">
+            <div class="field"><label>Linear API Key</label><input id="ml-k" type="password" placeholder="lin_api_…" value="${esc(S.linear.apiKey)}"></div>
+            <div class="field"><label>Team ID <span style="font-weight:400;text-transform:none">(optional)</span></label><input id="ml-t" placeholder="e.g. TEAM_ID" value="${esc(S.linear.teamId)}"></div>
+            <p class="field-hint">Generate at Linear → Settings → API → Personal API keys. Team ID is in the URL under Settings → Team → General.</p>
+          </div>
+
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="savePmToolConfig()">Save</button>
+            <button class="btn" onclick="closeModal()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- ── Figma tab ──────────────────────────────── -->
+        <div id="cfg-figma" class="tab-pane ${activeTab==='figma'?'active':''}">
+          <div class="section-note">
+            The Figma access token is optional — it authenticates the Figma MCP server so PM Harness
+            can read private files. The file key identifies which file to extract design context from.
+          </div>
+          <div class="field">
+            <label>Figma Personal Access Token</label>
+            <input id="cf-token" type="password" placeholder="figd_… (from Figma → Settings → Security → Access tokens)" value="${esc(S.figmaToken)}">
+          </div>
+          <div class="field">
+            <label>Figma File Key or URL</label>
+            <input id="cf-key" placeholder="https://pmharness-figma.com/file/ABC123/… or just ABC123" value="${esc(S.figmaKey)}">
+          </div>
+          <div class="btn-row">
+            <button class="btn btn-primary" onclick="saveFigmaConfig()">Save &amp; Connect</button>
+            <button class="btn" onclick="closeModal()">Cancel</button>
+          </div>
+        </div>
+
+      </div>
+    </div>`;
+}
+
+function switchProvider(p) {
+  document.querySelectorAll('#cfg-agent .radio-opt').forEach(o => o.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('ca-anthropic').style.display = p === 'anthropic' ? '' : 'none';
+  document.getElementById('ca-openai').style.display    = p === 'openai'    ? '' : 'none';
+}
+
+function switchConfigTab(tab) {
+  document.querySelectorAll('.cfg-tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+  document.querySelector(`.cfg-tab:nth-child(${['agent','pmtool','figma'].indexOf(tab)+1})`).classList.add('active');
+  document.getElementById('cfg-' + tab).classList.add('active');
+}
+
+function selectPmSubtool(tool) {
+  document.querySelectorAll('.radio-opt').forEach(o => o.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('pm-jira').style.display   = tool === 'jira'   ? '' : 'none';
+  document.getElementById('pm-linear').style.display = tool === 'linear' ? '' : 'none';
+}
+
+function saveAgentConfig() {
+  const isOpenAI = document.getElementById('ca-openai')?.style.display !== 'none';
+  const provider  = isOpenAI ? 'openai' : 'anthropic';
+  const key       = document.getElementById('ca-key')?.value.trim()        || '';
+  const openaiKey = document.getElementById('ca-openai-key')?.value.trim() || '';
+  const model     = isOpenAI
+    ? (document.getElementById('ca-openai-model')?.value || OPENAI_MODELS[0].id)
+    : (document.getElementById('ca-model')?.value        || S.config.model);
+  const agent  = document.getElementById('ca-agent')?.value         || S.config.targetAgent;
+  const tokens = parseInt(document.getElementById('ca-tokens')?.value) || 1000;
+  S.config.provider    = provider;
+  S.config.apiKey      = key;
+  S.config.openaiKey   = openaiKey;
+  S.config.model       = model;
+  S.config.targetAgent = agent;
+  S.config.maxTokens   = tokens;
+  saveConfig();
+  closeModal();
+  sep();
+  ok('Agent configuration saved');
+  const allModels = [...MODELS, ...OPENAI_MODELS];
+  const ml = allModels.find(m => m.id === model)?.label || model;
+  const al = TARGET_AGENTS.find(a => a.id === agent)?.label || agent;
+  dim(`  Provider: ${provider}`);
+  dim(`  Model: ${ml}`);
+  dim(`  Target agent: ${al}`);
+  dim(`  Max tokens: ${tokens}  (PRD: ${Math.round(tokens * 2.5)})`);
+  if (provider === 'anthropic' && key)     dim('  Anthropic API key: set (session)');
+  if (provider === 'openai'    && openaiKey) dim('  OpenAI API key: set (session)');
+  sep();
+  syncPanel();
+}
+
+function savePmToolConfig() {
+  const jiraActive = document.getElementById('pm-jira')?.style.display !== 'none';
+  if (jiraActive) {
+    S.jira = {
+      domain:  document.getElementById('mj-d')?.value.trim() || '',
+      email:   document.getElementById('mj-e')?.value.trim() || '',
+      token:   document.getElementById('mj-t')?.value        || '',
+      project: document.getElementById('mj-p')?.value.trim() || '',
+    };
+    S.pmTool = 'jira';
+  } else {
+    S.linear = {
+      apiKey: document.getElementById('ml-k')?.value || '',
+      teamId: document.getElementById('ml-t')?.value.trim() || '',
+    };
+    S.pmTool = 'linear';
+  }
+  saveConfig();
+  closeModal();
+  ok(`${jiraActive ? 'Jira' : 'Linear'} configuration saved ✓`);
+  syncPanel();
+}
+
+function saveFigmaConfig() {
+  const token = document.getElementById('cf-token')?.value || '';
+  const rawKey = document.getElementById('cf-key')?.value.trim() || '';
+  const m = rawKey.match(/pmharness-figma\.com\/(?:file|design)\/([A-Za-z0-9]+)/);
+  const key = m ? m[1] : rawKey;
+  S.figmaToken = token;
+  saveConfig();
+  closeModal();
+  if (key) {
+    cmdFigma(key);
+  } else {
+    ok('Figma token saved');
+    if (token) dim('  Token will be used for MCP authentication');
+    syncPanel();
+  }
+}
+
 function showModal(type) {
   const bodies = {
+    import: (() => {
+      const f = S._pendingImport || {};
+      const esc = s => (s||'').replace(/"/g, '&quot;');
+      return `
+      <p class="field-hint">Claude extracted the following fields from your document. Edit anything before applying.</p>
+      <div class="field"><label>Product Name</label><input id="mi-name" value="${esc(f.name)}"></div>
+      <div class="field"><label>Vision / Problem Statement</label><input id="mi-vision" value="${esc(f.vision)}"></div>
+      <div class="field"><label>Tech Stack</label><input id="mi-stack" value="${esc(f.stack)}"></div>
+      <div class="field"><label>Target Users</label><input id="mi-users" value="${esc(f.users)}"></div>
+      <div class="field"><label>Sprint Focus</label><input id="mi-sprint" value="${esc(f.sprint)}"></div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="applyImport()">Apply</button>
+        <button class="btn" onclick="closeModal()">Cancel</button>
+      </div>`;
+    })(),
     figma: `
       <div class="field">
         <label>Figma File Key or URL</label>
-        <input id="mf-key" placeholder="https://figma.com/file/ABC123/... or just ABC123" value="${S.figmaKey}">
+        <input id="mf-key" placeholder="https://pmharness-figma.com/file/ABC123/... or just ABC123" value="${S.figmaKey}">
       </div>
       <p class="field-hint">Copy the URL from your browser when the Figma file is open, or paste just the file key (the alphanumeric segment after /file/ or /design/ in the URL).</p>
       <div class="btn-row">
@@ -1242,7 +2206,7 @@ function showModal(type) {
       </div>`,
   };
 
-  const titles = { figma: 'Connect Figma', jira: 'Configure Jira', linear: 'Configure Linear' };
+  const titles = { import: 'Review Extracted Context', figma: 'Connect Figma', jira: 'Configure Jira', linear: 'Configure Linear' };
 
   $modal.innerHTML = `
     <div class="modal-overlay" onclick="if(event.target===this)closeModal()">
@@ -1335,15 +2299,17 @@ function boot() {
   dim('  Claude Sonnet  ·  Figma MCP  ·  Jira  ·  Linear  ·  MIT License');
   sep();
   dim('  Workflow:');
-  dim('    /init &lt;name&gt;  →  /set vision|stack|users  →  /figma &lt;url&gt;  (optional)');
-  dim('    /epics  →  /epic &lt;n&gt;  →  /stories  →  /tasks  →  /copy | /push');
+  dim('    /pmharness-import &lt;doc&gt;  or  /pmharness-init &lt;name&gt;  →  /pmharness-set vision|stack|users  →  /pmharness-figma &lt;url&gt;  (optional)');
+  dim('    /pmharness-epics  →  /pmharness-epic &lt;n&gt;  →  /pmharness-stories  and/or  /pmharness-usecases  →  /pmharness-tasks  →  /pmharness-copy | /pmharness-push');
+  dim('    /pmharness-prd  generates a full PRD document from all context at any stage');
   sep();
   dim('  Keyboard shortcuts:  Tab = autocomplete  ·  ↑↓ = history  ·  Esc = close');
   sep();
-  dim('  Type /help to see all available commands.');
+  dim('  Type /pmharness-help to see all available commands.');
   sep();
 }
 
+loadConfig();
 boot();
 syncPanel();
 $inp.focus();
