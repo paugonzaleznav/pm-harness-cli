@@ -1907,8 +1907,18 @@ function cmdExport() {
 }
 
 // ── /pmharness-status ───────────────────────────────────────────────────────
+// ── Local mode detection ────────────────────────────────────────────────────
+function isLocalMode() {
+  return location.hostname === 'localhost' || location.hostname === '127.0.0.1';
+}
+
 // ── /pmharness-setdir ───────────────────────────────────────────────────────
 async function cmdSetDir() {
+  if (isLocalMode()) {
+    ok('Running in CLI mode — files auto-save to <strong>pm-specs/</strong> automatically.');
+    dim('  No folder configuration needed. Start the server with: node server.js');
+    return;
+  }
   if (!window.showDirectoryPicker) {
     fail('File System Access API not supported in this browser.');
     dim('  Use Chrome or Edge to enable folder-based export.');
@@ -1916,7 +1926,6 @@ async function cmdSetDir() {
   }
   try {
     S.projectDir = await window.showDirectoryPicker({ mode: 'readwrite' });
-    // Ensure pm-docs subfolder exists
     await S.projectDir.getDirectoryHandle('pm-docs', { create: true });
     ok(`Project folder set: <strong>${S.projectDir.name}/pm-docs/</strong>`);
     dim('  All exports (epics, stories, use cases, PRD, tasks) will auto-save here.');
@@ -1927,6 +1936,23 @@ async function cmdSetDir() {
 }
 
 async function saveMarkdown(filename, content) {
+  // CLI mode — save via server.js to pm-specs/
+  if (isLocalMode()) {
+    try {
+      const r = await fetch('/api/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ filename, content }),
+      });
+      const data = await r.json();
+      if (data.ok) dim(`  Saved → pm-specs/${filename}`);
+      else warn(`Could not save ${filename}: ` + data.error);
+    } catch (e) {
+      warn(`Could not save ${filename}: ` + e.message);
+    }
+    return;
+  }
+  // Browser mode — File System Access API
   if (!S.projectDir) return;
   try {
     const dir  = await S.projectDir.getDirectoryHandle('pm-docs', { create: true });
@@ -2023,7 +2049,11 @@ function cmdStatus() {
   info(`    Active  <span style="color:${S.pmTool && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.pmTool && !isOpenAI ? S.pmTool : 'none'}</span>`);
   info(`    Pushed  <span style="color:var(--text-2)">${Object.keys(S.pushed).length} items</span>`);
   teal('  File export');
-  info(`    Folder  <span style="color:${S.projectDir ? 'var(--teal)' : 'var(--text-3)'}">${S.projectDir ? S.projectDir.name + '/pm-docs/' : 'not set  —  /pmharness-setdir'}</span>`);
+  if (isLocalMode()) {
+    info(`    Mode    <span style="color:var(--teal)">CLI — auto-saving to pm-specs/</span>`);
+  } else {
+    info(`    Folder  <span style="color:${S.projectDir ? 'var(--teal)' : 'var(--text-3)'}">${S.projectDir ? S.projectDir.name + '/pm-docs/' : 'not set  —  /pmharness-setdir'}</span>`);
+  }
   dim('  → /pmharness-config to open configuration');
   sep();
 }
@@ -2430,6 +2460,10 @@ function boot() {
   sep();
   dim('  Type /pmharness-help to see all available commands.');
   sep();
+  if (isLocalMode()) {
+    ok('CLI mode  —  files will auto-save to <strong>pm-specs/</strong> after each generation step.');
+    sep();
+  }
 }
 
 loadConfig();

@@ -48,22 +48,36 @@ Each layer reduces ambiguity. Each layer also injects context from all the layer
 
 **It's a single HTML file. There is nothing to install.**
 
+**Option A — CLI mode (recommended for local use)**
+
 ```bash
-# Option A: clone the repo
 git clone https://github.com/paugonzaleznav/pm-harness-cli
-open pm-harness-cli/index.html
-
-# Option B: drop it into your project
-cp index.html /your/project/pm-harness.html
-open /your/project/pm-harness.html
-
-# Option C: serve it locally
-npx serve .
-# or
-python3 -m http.server 8080
+cd pm-harness-cli
+node server.js
+# → open http://localhost:3000
 ```
 
-Open in any modern browser (Chrome, Firefox, Safari, Edge). No npm, no build step, no server required.
+Markdown files auto-save to `pm-specs/` after every generation step — no configuration needed:
+
+```
+pm-harness-cli/
+└── pm-specs/
+    ├── epics.md
+    ├── stories.md
+    ├── usecases.md
+    ├── prd.md
+    └── tasks.md
+```
+
+**Option B — Browser (Claude.ai / self-hosted)**
+
+```bash
+# Drop the single file into any project
+cp pm-harness/index.html /your/project/pm-harness.html
+open /your/project/pm-harness.html
+```
+
+Use `/pmharness-setdir` to pick a project folder for auto-save (Chrome / Edge only).
 
 > **API access:** PM Harness calls `api.anthropic.com` directly from the browser. When running inside Claude.ai, the API key is handled by the Claude.ai proxy automatically. When self-hosting, see [docs/SELF_HOSTING.md](./docs/SELF_HOSTING.md) for how to add your own key.
 
@@ -164,23 +178,9 @@ aider           # paste
 /pmharness-summary        ← spec summary view in terminal
 ```
 
-To save files directly to your project folder (Chrome / Edge only):
+**CLI mode** (`node server.js`): files auto-save to `pm-specs/` after every generation step — no setup needed.
 
-```
-/pmharness-setdir         ← pick your project folder once per session
-```
-
-After that, every generation step auto-saves to a `pm-docs/` subfolder:
-
-```
-your-project/
-└── pm-docs/
-    ├── epics.md
-    ├── stories.md
-    ├── usecases.md
-    ├── prd.md
-    └── tasks.md
-```
+**Browser mode**: use `/pmharness-setdir` once per session to pick a project folder (Chrome / Edge only). Files save to a `pm-docs/` subfolder inside it.
 
 ---
 
