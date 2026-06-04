@@ -159,9 +159,27 @@ aider           # paste
 ### 9 — Export
 
 ```
-/pmharness-copy tasks     ← all prompts as Markdown (for sprint planning docs)
-/pmharness-copy export    ← full spec: vision + stories + tasks + Figma context
-/pmharness-summary         ← summary view in terminal
+/pmharness-copy tasks     ← all task prompts as Markdown to clipboard
+/pmharness-copy export    ← full spec: vision + stories + tasks + Figma context to clipboard
+/pmharness-summary        ← spec summary view in terminal
+```
+
+To save files directly to your project folder (Chrome / Edge only):
+
+```
+/pmharness-setdir         ← pick your project folder once per session
+```
+
+After that, every generation step auto-saves to a `pm-docs/` subfolder:
+
+```
+your-project/
+└── pm-docs/
+    ├── epics.md
+    ├── stories.md
+    ├── usecases.md
+    ├── prd.md
+    └── tasks.md
 ```
 
 ---
@@ -201,6 +219,7 @@ aider           # paste
 | `/pmharness-config jira` | Configure Jira credentials |
 | `/pmharness-config linear` | Configure Linear credentials |
 | `/pmharness-push [jira\|linear]` | Push tasks to PM tool |
+| `/pmharness-setdir` | Pick a project folder — all exports auto-save to `pm-docs/` |
 | `/pmharness-summary` | Spec summary in terminal |
 | `/pmharness-status` | Integration and agent status |
 | `/pmharness-help [filter]` | Show all commands (or filter by keyword) |

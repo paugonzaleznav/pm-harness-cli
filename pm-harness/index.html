@@ -707,6 +707,7 @@ const CMDS = [
   { c:'/pmharness-push',          a:'[jira|linear]', d:'Push tasks to the configured PM tool' },
   { c:'/pmharness-push jira',     a:'',             d:'Push tasks to Jira' },
   { c:'/pmharness-push linear',   a:'',             d:'Push tasks to Linear' },
+  { c:'/pmharness-setdir',        a:'',             d:'Select a project folder — all exports auto-save as Markdown files' },
   { c:'/pmharness-summary',       a:'',             d:'Show the full spec summary in terminal' },
   { c:'/pmharness-status',        a:'',             d:'Show status of all integrations' },
   { c:'/pmharness-help',          a:'[filter]',      d:'Show all commands, or filter by keyword' },
@@ -745,6 +746,7 @@ const S = {
   jira:   { domain: '', email: '', token: '', project: '' },
   linear: { apiKey: '', teamId: '' },
   pushed: {},       // { ['epic-n' | 'story-n' | 'uc-n']: 'Jira' | 'Linear' }
+  projectDir: null, // FileSystemDirectoryHandle — set via /pmharness-setdir
 
   // CLI state
   hist:    [],    // command history, newest first
@@ -1014,6 +1016,7 @@ async function run(raw) {
   if (c0 === '/pmharness-help')                return cmdHelp(rest);
   if (c0 === '/pmharness-status')              return cmdStatus();
   if (c0 === '/pmharness-summary')             return cmdExport();
+  if (c0 === '/pmharness-setdir')              return cmdSetDir();
 
   // Import
   if (c0 === '/pmharness-import')              return cmdImport();
@@ -1313,6 +1316,7 @@ async function cmdGenEpics() {
     });
     dim('');
     dim('  Next → /pmharness-epic 1');
+    await saveMarkdown('epics.md', mdEpics());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1366,6 +1370,7 @@ async function cmdGenStories() {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want <em>${clip(s.action, 42)}</em>  ${sizeTag(s.complexity)}`);
     });
     dim('  Next → /pmharness-tasks');
+    await saveMarkdown('stories.md', mdStories());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1422,6 +1427,7 @@ async function cmdGenUseCases() {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  <strong>${u.title}</strong>  <span style="color:var(--text-2)">· actor: ${u.actor}</span>`);
     });
     dim('  Next → /pmharness-tasks');
+    await saveMarkdown('usecases.md', mdUseCases());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1522,6 +1528,7 @@ Generate a PRD. JSON object:
     sep();
     renderPrd(parsed);
     dim('  → /pmharness-prd view  to re-display  ·  /pmharness-copy prd  to copy as Markdown');
+    await saveMarkdown('prd.md', mdCopyPrd());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1592,8 +1599,8 @@ function renderPrd(p) {
   }
 }
 
-function cmdCopyPrd() {
-  if (!S.prd) { fail('No PRD yet. Run /pmharness-prd to generate one.'); return; }
+function mdCopyPrd() {
+  if (!S.prd) return '';
   const p = S.prd;
   const lines = [
     `# ${p.title}`,
@@ -1605,18 +1612,9 @@ function cmdCopyPrd() {
     '## Problem Statement',
     p.problemStatement,
   ];
-  if (p.goals?.length) {
-    lines.push('', '## Goals');
-    p.goals.forEach(g => lines.push('- ' + g));
-  }
-  if (p.successMetrics?.length) {
-    lines.push('', '## Success Metrics');
-    p.successMetrics.forEach(m => lines.push('- ' + m));
-  }
-  if (p.personas?.length) {
-    lines.push('', '## Personas');
-    p.personas.forEach(pe => lines.push(`**${pe.name}:** ${pe.description}`));
-  }
+  if (p.goals?.length)                { lines.push('', '## Goals');                    p.goals.forEach(g => lines.push('- ' + g)); }
+  if (p.successMetrics?.length)       { lines.push('', '## Success Metrics');          p.successMetrics.forEach(m => lines.push('- ' + m)); }
+  if (p.personas?.length)             { lines.push('', '## Personas');                 p.personas.forEach(pe => lines.push(`**${pe.name}:** ${pe.description}`)); }
   if (p.features?.length) {
     lines.push('', '## Features');
     p.features.forEach(f => {
@@ -1626,23 +1624,16 @@ function cmdCopyPrd() {
       lines.push('');
     });
   }
-  if (p.outOfScope?.length) {
-    lines.push('## Out of Scope');
-    p.outOfScope.forEach(o => lines.push('- ' + o));
-  }
-  if (p.technicalConsiderations?.length) {
-    lines.push('', '## Technical Considerations');
-    p.technicalConsiderations.forEach(t => lines.push('- ' + t));
-  }
-  if (p.risks?.length) {
-    lines.push('', '## Risks');
-    p.risks.forEach(r => lines.push(`**${r.risk}:** ${r.mitigation}`));
-  }
-  if (p.openQuestions?.length) {
-    lines.push('', '## Open Questions');
-    p.openQuestions.forEach(q => lines.push('- ' + q));
-  }
-  navigator.clipboard.writeText(lines.join('\n'))
+  if (p.outOfScope?.length)           { lines.push('## Out of Scope');                 p.outOfScope.forEach(o => lines.push('- ' + o)); }
+  if (p.technicalConsiderations?.length) { lines.push('', '## Technical Considerations'); p.technicalConsiderations.forEach(t => lines.push('- ' + t)); }
+  if (p.risks?.length)                { lines.push('', '## Risks');                    p.risks.forEach(r => lines.push(`**${r.risk}:** ${r.mitigation}`)); }
+  if (p.openQuestions?.length)        { lines.push('', '## Open Questions');           p.openQuestions.forEach(q => lines.push('- ' + q)); }
+  return lines.join('\n');
+}
+
+function cmdCopyPrd() {
+  if (!S.prd) { fail('No PRD yet. Run /pmharness-prd to generate one.'); return; }
+  navigator.clipboard.writeText(mdCopyPrd())
     .then(() => ok('PRD copied as Markdown ✓'));
 }
 
@@ -1692,6 +1683,7 @@ async function cmdGenTasks() {
     });
     dim('');
     dim('  Next: /pmharness-copy task &lt;n&gt;  ·  /pmharness-copy tasks  ·  paste into your code agent');
+    await saveMarkdown('tasks.md', mdTasks());
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1915,6 +1907,99 @@ function cmdExport() {
 }
 
 // ── /pmharness-status ───────────────────────────────────────────────────────
+// ── /pmharness-setdir ───────────────────────────────────────────────────────
+async function cmdSetDir() {
+  if (!window.showDirectoryPicker) {
+    fail('File System Access API not supported in this browser.');
+    dim('  Use Chrome or Edge to enable folder-based export.');
+    return;
+  }
+  try {
+    S.projectDir = await window.showDirectoryPicker({ mode: 'readwrite' });
+    // Ensure pm-docs subfolder exists
+    await S.projectDir.getDirectoryHandle('pm-docs', { create: true });
+    ok(`Project folder set: <strong>${S.projectDir.name}/pm-docs/</strong>`);
+    dim('  All exports (epics, stories, use cases, PRD, tasks) will auto-save here.');
+    dim('  Already generated content? Run /pmharness-summary to trigger a full save.');
+  } catch (e) {
+    if (e.name !== 'AbortError') fail('Could not open folder: ' + e.message);
+  }
+}
+
+async function saveMarkdown(filename, content) {
+  if (!S.projectDir) return;
+  try {
+    const dir  = await S.projectDir.getDirectoryHandle('pm-docs', { create: true });
+    const file = await dir.getFileHandle(filename, { create: true });
+    const writable = await file.createWritable();
+    await writable.write(content);
+    await writable.close();
+    dim(`  Saved → pm-docs/${filename}`);
+  } catch (e) {
+    warn(`Could not save ${filename}: ` + e.message);
+  }
+}
+
+function mdEpics() {
+  const lines = [`# Epics — ${S.name}\n`];
+  S.epics.forEach((e, i) => {
+    lines.push(`## ${i+1}. ${e.title}  [${e.priority.toUpperCase()}]`);
+    lines.push(e.description);
+    if (e.tags?.length) lines.push(`\nTags: ${e.tags.join(', ')}`);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function mdStories() {
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  const lines = [`# User Stories — ${epic?.title || S.name}\n`];
+  S.stories.forEach((s, i) => {
+    lines.push(`## Story ${i+1}  [${s.complexity}]`);
+    lines.push(`**As a** ${s.role}`);
+    lines.push(`**I want** ${s.action}`);
+    lines.push(`**so that** ${s.benefit}`);
+    if (s.acceptanceCriteria?.length) {
+      lines.push('\n**Acceptance criteria:**');
+      s.acceptanceCriteria.forEach(a => lines.push(`- ${a}`));
+    }
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function mdUseCases() {
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  const lines = [`# Use Cases — ${epic?.title || S.name}\n`];
+  S.usecases.forEach((u, i) => {
+    lines.push(`## ${i+1}. ${u.title}`);
+    lines.push(`**Actor:** ${u.actor}`);
+    if (u.preconditions?.length) { lines.push('\n**Preconditions:**'); u.preconditions.forEach(p => lines.push(`- ${p}`)); }
+    if (u.mainFlow?.length)      { lines.push('\n**Main flow:**');     u.mainFlow.forEach((s, j) => lines.push(`${j+1}. ${s}`)); }
+    if (u.alternativeFlows?.length) {
+      lines.push('\n**Alternative flows:**');
+      u.alternativeFlows.forEach(f => { lines.push(`- *${f.condition}*`); (f.steps||[]).forEach(s => lines.push(`  - ${s}`)); });
+    }
+    if (u.postconditions?.length) { lines.push('\n**Postconditions:**'); u.postconditions.forEach(p => lines.push(`- ${p}`)); }
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
+function mdTasks() {
+  const epic = S.epics.find(e => e.id === S.selEpic);
+  const lines = [`# Agent Tasks — ${epic?.title || S.name}\n`];
+  S.tasks.forEach((t, i) => {
+    lines.push(`## Task ${i+1}: ${t.title}  [${t.estimatedTokens}]`);
+    lines.push(`\n\`\`\`\n${t.agentPrompt}\n\`\`\``);
+    if (t.context)      lines.push(`\n**Context:** ${t.context}`);
+    if (t.constraints?.length) { lines.push('\n**Constraints:**'); t.constraints.forEach(c => lines.push(`- ${c}`)); }
+    if (t.expectedOutput) lines.push(`\n**Expected output:** ${t.expectedOutput}`);
+    lines.push('');
+  });
+  return lines.join('\n');
+}
+
 function cmdStatus() {
   sep(); hdr('Status');
   teal('  Agent');
@@ -1936,7 +2021,9 @@ function cmdStatus() {
   info(`    Jira    <span style="color:${S.jira.token && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.jira.token && !isOpenAI ? '✓ ' + S.jira.domain : isOpenAI ? 'unavailable (OpenAI mode)' : 'not configured  —  /pmharness-config pmtool'}</span>`);
   info(`    Linear  <span style="color:${S.linear.apiKey && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.linear.apiKey && !isOpenAI ? '✓ configured' : isOpenAI ? 'unavailable (OpenAI mode)' : 'not configured  —  /pmharness-config pmtool'}</span>`);
   info(`    Active  <span style="color:${S.pmTool && !isOpenAI ? 'var(--teal)':'var(--text-3)'}">${S.pmTool && !isOpenAI ? S.pmTool : 'none'}</span>`);
-  info(`    Pushed  <span style="color:var(--text-2)">${Object.keys(S.pushed).length} tasks</span>`);
+  info(`    Pushed  <span style="color:var(--text-2)">${Object.keys(S.pushed).length} items</span>`);
+  teal('  File export');
+  info(`    Folder  <span style="color:${S.projectDir ? 'var(--teal)' : 'var(--text-3)'}">${S.projectDir ? S.projectDir.name + '/pm-docs/' : 'not set  —  /pmharness-setdir'}</span>`);
   dim('  → /pmharness-config to open configuration');
   sep();
 }
