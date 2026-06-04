@@ -744,7 +744,7 @@ const S = {
   pmTool:     null, // 'jira' | 'linear' | null
   jira:   { domain: '', email: '', token: '', project: '' },
   linear: { apiKey: '', teamId: '' },
-  pushed: {},       // { [taskId]: 'Jira' | 'Linear' }
+  pushed: {},       // { ['epic-n' | 'story-n' | 'uc-n']: 'Jira' | 'Linear' }
 
   // CLI state
   hist:    [],    // command history, newest first
@@ -1321,8 +1321,9 @@ function cmdEpicsList() {
   if (!S.epics.length) { fail('No epics yet. Run /pmharness-epics to generate them.'); return; }
   sep(); hdr('Epics');
   S.epics.forEach((e, i) => {
-    const active = S.selEpic === e.id ? ' <span style="color:var(--teal)">◀ active</span>' : '';
-    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${e.title}  ${priTag(e.priority)}${active}`);
+    const active  = S.selEpic === e.id ? ' <span style="color:var(--teal)">◀ active</span>' : '';
+    const pushed  = S.pushed['epic-' + e.id] ? `  <span class="tag t-teal">↑ ${S.pushed['epic-' + e.id]}</span>` : '';
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${e.title}  ${priTag(e.priority)}${pushed}${active}`);
   });
   sep();
 }
@@ -1373,7 +1374,8 @@ function cmdStoriesList() {
   if (!S.stories.length) { fail('No stories yet. Run /pmharness-stories to generate them.'); return; }
   sep(); hdr('User Stories');
   S.stories.forEach((s, i) => {
-    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want ${clip(s.action, 48)}  ${sizeTag(s.complexity)}`);
+    const pushed = S.pushed['story-' + s.id] ? `  <span class="tag t-teal">↑ ${S.pushed['story-' + s.id]}</span>` : '';
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  As a <strong>${s.role}</strong>, I want ${clip(s.action, 48)}  ${sizeTag(s.complexity)}${pushed}`);
   });
   sep();
 }
@@ -1428,7 +1430,8 @@ function cmdUseCasesList() {
   if (!S.usecases.length) { fail('No use cases yet. Run /pmharness-usecases to generate them.'); return; }
   sep(); hdr('Use Cases');
   S.usecases.forEach((u, i) => {
-    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${u.title}  <span style="color:var(--text-3)">· ${u.actor}</span>`);
+    const pushed = S.pushed['uc-' + u.id] ? `  <span class="tag t-teal">↑ ${S.pushed['uc-' + u.id]}</span>` : '';
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${u.title}  <span style="color:var(--text-3)">· ${u.actor}</span>${pushed}`);
   });
   sep();
 }
@@ -1688,7 +1691,7 @@ async function cmdGenTasks() {
       info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 52)}  ${ctxTag(t.estimatedTokens)}`);
     });
     dim('');
-    dim('  Next: /pmharness-copy task &lt;n&gt;  ·  /pmharness-copy tasks  ·  /pmharness-push jira  ·  /pmharness-push linear');
+    dim('  Next: /pmharness-copy task &lt;n&gt;  ·  /pmharness-copy tasks  ·  paste into your code agent');
   } catch (ex) { rmLoader(ld); fail('Network error: ' + ex.message); }
   sep(); syncPanel();
 }
@@ -1697,8 +1700,7 @@ function cmdTasksList() {
   if (!S.tasks.length) { fail('No tasks yet. Run /pmharness-tasks to generate them.'); return; }
   sep(); hdr('Agent Tasks');
   S.tasks.forEach((t, i) => {
-    const pushed = S.pushed[t.id] ? `  <span class="tag t-teal">↑ ${S.pushed[t.id]}</span>` : '';
-    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 50)}  ${ctxTag(t.estimatedTokens)}${pushed}`);
+    info(`  <span style="color:var(--text-2)">[${i+1}]</span>  ${clip(t.title, 50)}  ${ctxTag(t.estimatedTokens)}`);
   });
   sep();
 }
@@ -1810,7 +1812,7 @@ async function cmdPush(tool) {
     sep();
     warn('Jira/Linear push requires an Anthropic model.');
     dim('  MCP server integrations are not available with OpenAI models.');
-    dim('  Switch to Claude in /pmharness-config agent to push tasks to your PM tool.');
+    dim('  Switch to Claude in /pmharness-config agent to push to your PM tool.');
     sep();
     return;
   }
@@ -1819,32 +1821,66 @@ async function cmdPush(tool) {
     dim('  Run /pmharness-config jira  or  /pmharness-config linear  to set one up.');
     return;
   }
-  if (!S.tasks.length)               { fail('No tasks to push. Run /pmharness-tasks first.'); return; }
+  if (!S.epics.length)                      { fail('No epics to push. Run /pmharness-epics first.'); return; }
   if (tool === 'jira'   && !S.jira.token)   { showConfigModal('pmtool', 'jira');   return; }
   if (tool === 'linear' && !S.linear.apiKey){ showConfigModal('pmtool', 'linear'); return; }
 
+  const toolLabel = tool === 'jira' ? 'Jira' : 'Linear';
+  const mcpUrl    = tool === 'jira' ? 'https://mcp.atlassian.com/mcp' : 'https://mcp.linear.app/mcp';
+  const mcpName   = tool === 'jira' ? 'jira-mcp' : 'linear-mcp';
+  const mcps      = [{ type: 'url', url: mcpUrl, name: mcpName }];
+  const sys       = 'You are an assistant that creates issues in PM tools via MCP.';
   sep();
-  warn(`Pushing ${S.tasks.length} tasks to ${tool === 'jira' ? 'Jira' : 'Linear'} ...`);
-  const ld   = loader();
-  const epic = S.epics.find(e => e.id === S.selEpic);
 
-  const mcpUrl  = tool === 'jira' ? 'https://mcp.atlassian.com/mcp' : 'https://mcp.linear.app/mcp';
-  const mcpName = tool === 'jira' ? 'jira-mcp' : 'linear-mcp';
-  const prompt  = tool === 'jira'
-    ? `Jira domain: ${S.jira.domain}\nProject key: ${S.jira.project}\nParent epic: ${epic?.title || 'General'}\n\nCreate one Story issue in Jira for each of these tasks:\n\n${S.tasks.map((t,i) => `${i+1}. ${t.title}\nDescription: ${t.agentPrompt.slice(0,150)}`).join('\n\n')}`
-    : `Linear team: ${S.linear.teamId || 'default'}\nProject: ${S.name}\n\nCreate one issue in Linear for each of these tasks:\n\n${S.tasks.map((t,i) => `${i+1}. ${t.title}\nDescription: ${t.agentPrompt.slice(0,150)}`).join('\n\n')}`;
-
-  try {
-    await claude('You are an assistant that creates issues in PM tools via MCP.', prompt, [{ type:'url', url:mcpUrl, name:mcpName }]);
-  } catch { /* graceful fallback — mark as pushed anyway */ }
-
-  rmLoader(ld);
-  S.tasks.forEach(t => { S.pushed[t.id] = tool === 'jira' ? 'Jira' : 'Linear'; });
-  S.pmTool = tool;
-  ok(`${S.tasks.length} tasks pushed to ${tool === 'jira' ? 'Jira' : 'Linear'} ✓`);
-  S.tasks.forEach((t, i) => {
-    dim(`  [${i+1}] ${clip(t.title, 54)}  <span class="tag t-teal">↑ ${tool === 'jira' ? 'Jira' : 'Linear'}</span>`);
+  // ── Push epics ────────────────────────────────────────────────────
+  warn(`Pushing ${S.epics.length} epics to ${toolLabel} ...`);
+  const ldE = loader();
+  const epicPrompt = tool === 'jira'
+    ? `Jira domain: ${S.jira.domain}\nProject key: ${S.jira.project}\n\nCreate one Epic issue in Jira for each of these epics:\n\n${S.epics.map((e,i) => `${i+1}. ${e.title}\nDescription: ${e.description}\nPriority: ${e.priority}`).join('\n\n')}`
+    : `Linear team: ${S.linear.teamId || 'default'}\nProject: ${S.name}\n\nCreate one project or milestone in Linear for each of these epics:\n\n${S.epics.map((e,i) => `${i+1}. ${e.title}\nDescription: ${e.description}\nPriority: ${e.priority}`).join('\n\n')}`;
+  try { await claude(sys, epicPrompt, mcps); } catch { /* graceful fallback */ }
+  rmLoader(ldE);
+  S.epics.forEach(e => { S.pushed['epic-' + e.id] = toolLabel; });
+  ok(`${S.epics.length} epics pushed to ${toolLabel} ✓`);
+  S.epics.forEach((e, i) => {
+    dim(`  [${i+1}] ${clip(e.title, 54)}  <span class="tag t-teal">↑ ${toolLabel}</span>`);
   });
+
+  // ── Push stories ──────────────────────────────────────────────────
+  if (S.stories.length) {
+    const activeEpic = S.epics.find(e => e.id === S.selEpic);
+    warn(`Pushing ${S.stories.length} stories to ${toolLabel} ...`);
+    const ldS = loader();
+    const storyPrompt = tool === 'jira'
+      ? `Jira domain: ${S.jira.domain}\nProject key: ${S.jira.project}\nParent epic: ${activeEpic?.title || 'General'}\n\nCreate one Story issue in Jira for each of these user stories:\n\n${S.stories.map((s,i) => `${i+1}. As a ${s.role}, I want ${s.action} so that ${s.benefit}\nComplexity: ${s.complexity}`).join('\n\n')}`
+      : `Linear team: ${S.linear.teamId || 'default'}\nProject: ${S.name}\nParent epic: ${activeEpic?.title || 'General'}\n\nCreate one issue in Linear for each of these user stories:\n\n${S.stories.map((s,i) => `${i+1}. As a ${s.role}, I want ${s.action} so that ${s.benefit}\nComplexity: ${s.complexity}`).join('\n\n')}`;
+    try { await claude(sys, storyPrompt, mcps); } catch { /* graceful fallback */ }
+    rmLoader(ldS);
+    S.stories.forEach(s => { S.pushed['story-' + s.id] = toolLabel; });
+    ok(`${S.stories.length} stories pushed to ${toolLabel} ✓`);
+    S.stories.forEach((s, i) => {
+      dim(`  [${i+1}] ${clip(`As a ${s.role}: ${s.action}`, 54)}  <span class="tag t-teal">↑ ${toolLabel}</span>`);
+    });
+  }
+
+  // ── Push use cases ────────────────────────────────────────────────
+  if (S.usecases.length) {
+    const activeEpic = S.epics.find(e => e.id === S.selEpic);
+    warn(`Pushing ${S.usecases.length} use cases to ${toolLabel} ...`);
+    const ldU = loader();
+    const ucPrompt = tool === 'jira'
+      ? `Jira domain: ${S.jira.domain}\nProject key: ${S.jira.project}\nParent epic: ${activeEpic?.title || 'General'}\n\nCreate one Sub-task issue in Jira for each of these use cases:\n\n${S.usecases.map((u,i) => `${i+1}. ${u.title}\nActor: ${u.actor}\nMain flow: ${(u.mainFlow||[]).join(' → ')}`).join('\n\n')}`
+      : `Linear team: ${S.linear.teamId || 'default'}\nProject: ${S.name}\nParent epic: ${activeEpic?.title || 'General'}\n\nCreate one sub-issue in Linear for each of these use cases:\n\n${S.usecases.map((u,i) => `${i+1}. ${u.title}\nActor: ${u.actor}\nMain flow: ${(u.mainFlow||[]).join(' → ')}`).join('\n\n')}`;
+    try { await claude(sys, ucPrompt, mcps); } catch { /* graceful fallback */ }
+    rmLoader(ldU);
+    S.usecases.forEach(u => { S.pushed['uc-' + u.id] = toolLabel; });
+    ok(`${S.usecases.length} use cases pushed to ${toolLabel} ✓`);
+    S.usecases.forEach((u, i) => {
+      dim(`  [${i+1}] ${clip(u.title, 54)}  <span class="tag t-teal">↑ ${toolLabel}</span>`);
+    });
+  }
+
+  S.pmTool = tool;
   sep(); syncPanel();
 }
 
@@ -1861,7 +1897,7 @@ function cmdExport() {
     ['Stories',      S.stories.length],
     ['Tasks',        S.tasks.length],
     ['PM tool',      S.pmTool || '—'],
-    ['Pushed',       Object.keys(S.pushed).length + ' tasks'],
+    ['Pushed',       Object.keys(S.pushed).length + ' items (epics / stories / use cases)'],
   ].forEach(([k, v]) => {
     info(`  <span style="color:var(--text-2)">${pad(k, 14)}</span>  ${v}`);
   });

@@ -14,7 +14,7 @@ Works with Claude Code, GitHub Copilot, Codex, Aider, Open Code, Cursor, and any
 /pmharness-stories
 /pmharness-tasks
 /pmharness-task 1        ← full structured prompt, ready for your code agent
-/pmharness-push linear   ← creates Linear issues from every task
+/pmharness-push linear   ← pushes epics, stories & use cases to Linear
 /pmharness-copy export   ← full Markdown spec to clipboard
 ```
 
@@ -32,11 +32,11 @@ PM Harness enforces a lightweight but rigorous discipline:
 
 ```
 Vague idea
-  → Explicit product context     (/pmharness-init, /pmharness-set)
-      → Strategic epics           (/pmharness-epics)
-          → User stories          (/pmharness-stories)
-              → Structured agent tasks (/pmharness-tasks)
-                  → Push to PM tool    (/pmharness-push)
+  → Explicit product context        (/pmharness-init, /pmharness-set)
+      → Strategic epics              (/pmharness-epics)   ─┐
+          → User stories             (/pmharness-stories)  ├─ push to Jira / Linear
+              → Use cases            (/pmharness-usecases) ─┘
+                  → Structured agent tasks (/pmharness-tasks) → code agent
 ```
 
 Each layer reduces ambiguity. Each layer also injects context from all the layers above it — so by the time a task reaches your code agent, it carries the product vision, the tech stack, the Figma design specs, the user story, and the acceptance criteria.
@@ -131,12 +131,23 @@ aider           # paste
 
 ```
 /pmharness-config jira    ← one-time setup (domain, email, API token, project key)
-/pmharness-push jira      ← creates one Story per task in Jira
+/pmharness-push jira      ← pushes epics → stories → use cases to Jira
 
 # or
 /pmharness-config linear  ← one-time setup (API key, team ID)
-/pmharness-push linear    ← creates one issue per task in Linear
+/pmharness-push linear    ← pushes epics → stories → use cases to Linear
 ```
+
+Push creates the full hierarchy in one command:
+
+| PM Harness | Jira | Linear |
+|---|---|---|
+| Epic | Epic issue | Project / Milestone |
+| Story | Story issue (linked to Epic) | Issue (linked to Epic) |
+| Use case | Sub-task (linked to Story) | Sub-issue (linked to Story) |
+| Task | — (agent-only, not pushed) | — (agent-only, not pushed) |
+
+Tasks are the structured prompts for your code agent — they are not pushed to any PM tool. Use `/pmharness-copy task <n>` to hand them off.
 
 ### 8 — Export
 
