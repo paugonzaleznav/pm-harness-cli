@@ -225,8 +225,8 @@ Full reference: [docs/COMMANDS.md](./docs/COMMANDS.md)
 | Integration | What it does | How to set up |
 |---|---|---|
 | **Figma** | Extracts design context (components, flows, colors, typography) and injects it into all AI prompts | `/pmharness-figma <url>` |
-| **Jira** | Creates Story issues for each generated task | `/pmharness-config jira` → `/pmharness-push jira` |
-| **Linear** | Creates issues for each generated task | `/pmharness-config linear` → `/pmharness-push linear` |
+| **Jira** | Creates Epics, Stories (linked to Epic), and Sub-tasks (linked to Story) from your generated epics, stories, and use cases | `/pmharness-config jira` → `/pmharness-push jira` |
+| **Linear** | Creates Projects/Milestones, Issues (linked to Epic), and Sub-issues (linked to Story) from your generated epics, stories, and use cases | `/pmharness-config linear` → `/pmharness-push linear` |
 
 > Figma and PM tool integrations use the Anthropic MCP protocol and require an Anthropic model. They are unavailable when using OpenAI models.
 
