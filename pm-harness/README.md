@@ -206,14 +206,21 @@ aider     # paste
 
 ### 9 — Export
 
+Every generation step already auto-saves its file to `pm-specs/`. The export commands let you re-save, print, or bundle at any time:
+
 ```
-/pmharness-export tasks     ← all task prompts as Markdown to clipboard
-/pmharness-export all    ← full spec (vision + stories + tasks + Figma) to clipboard
-/pmharness-export prd       ← PRD as Markdown to clipboard
-/pmharness-summary        ← spec summary in terminal
+/pmharness-export task <n>  ← prints the prompt to stdout — pipe it to your agent
+/pmharness-export tasks     ← re-saves pm-specs/tasks.md
+/pmharness-export prd       ← re-saves pm-specs/prd.md
+/pmharness-export all       ← saves pm-specs/spec.md (full spec in one file)
+/pmharness-summary          ← spec summary in terminal
 ```
 
-**CLI mode** (`node server.js`): epics, stories, use cases, PRD, and tasks auto-save to `pm-specs/` after each generation step.
+Pipe a task prompt directly to your code agent:
+
+```bash
+node cli.js <<< "/pmharness-export task 1" | claude
+```
 
 **Browser mode**: use `/pmharness-setdir` once per session to pick a folder (Chrome / Edge only).
 
@@ -256,10 +263,10 @@ aider     # paste
 
 | Command | Description |
 |---|---|
-| `/pmharness-export task <n>` | Copy task n prompt to clipboard |
-| `/pmharness-export tasks` | Copy all task prompts as Markdown |
-| `/pmharness-export prd` | Copy the PRD as Markdown |
-| `/pmharness-export all` | Copy full spec as Markdown |
+| `/pmharness-export task <n>` | Print task n prompt to stdout (pipe to your agent) |
+| `/pmharness-export tasks` | Re-save `pm-specs/tasks.md` |
+| `/pmharness-export prd` | Re-save `pm-specs/prd.md` |
+| `/pmharness-export all` | Save `pm-specs/spec.md` — full spec in one file |
 | `/pmharness-summary` | Spec summary in terminal |
 
 ### Integrations

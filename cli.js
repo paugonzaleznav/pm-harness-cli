@@ -5,7 +5,6 @@ const readline   = require('readline');
 const fs         = require('fs');
 const path       = require('path');
 const os         = require('os');
-const { execSync } = require('child_process');
 
 // ── ANSI ──────────────────────────────────────────────────────────
 const A = {
@@ -169,15 +168,6 @@ function mdPrd() {
   return lines.join('\n');
 }
 
-// ── Clipboard ─────────────────────────────────────────────────────
-function copyToClipboard(text) {
-  try {
-    if      (process.platform==='darwin') execSync('pbcopy',                         { input:text });
-    else if (process.platform==='linux')  execSync('xclip -selection clipboard',     { input:text });
-    else if (process.platform==='win32')  execSync('clip',                           { input:text });
-    return true;
-  } catch { return false; }
-}
 
 // ── readline prompt helper ────────────────────────────────────────
 function ask(question, def='') {
@@ -460,24 +450,24 @@ async function cmdPush(tool) {
 }
 
 // ── Export ────────────────────────────────────────────────────────
+// Print a task prompt to stdout — can be piped directly to a code agent
 function cmdExportTask(arg) {
   const n = parseInt(arg);
   if (isNaN(n)||n<1||n>S.tasks.length) { fail('Invalid number.'); return; }
-  if (copyToClipboard(S.tasks[n-1].agentPrompt)) ok(`Task #${n} copied to clipboard ✓`);
-  else { fail('Clipboard unavailable. Printing prompt:'); sep(); info(S.tasks[n-1].agentPrompt); sep(); }
+  sep(); process.stdout.write(S.tasks[n-1].agentPrompt + '\n'); sep();
+  dim(`  → pipe to your agent: pmharness | claude  (or paste the output above)`);
 }
 
 function cmdExportTasks() {
   if (!S.tasks.length) { fail('No tasks yet.'); return; }
-  const md = S.tasks.map((t,i)=>`# Task ${i+1}: ${t.title}\n\n${t.agentPrompt}`).join('\n\n---\n\n');
-  if (copyToClipboard(md)) ok(`All ${S.tasks.length} task prompts copied to clipboard ✓`);
-  else fail('Clipboard unavailable.');
+  saveMarkdown('tasks.md', mdTasks());
+  ok(`pm-specs/tasks.md updated — ${S.tasks.length} tasks`);
 }
 
 function cmdExportPrd() {
   if (!S.prd) { fail('No PRD yet. Run /pmharness-prd first.'); return; }
-  if (copyToClipboard(mdPrd())) ok('PRD copied to clipboard ✓');
-  else fail('Clipboard unavailable.');
+  saveMarkdown('prd.md', mdPrd());
+  ok('pm-specs/prd.md updated');
 }
 
 function cmdExportAll() {
@@ -485,10 +475,12 @@ function cmdExportAll() {
   const md = [`# ${S.name} — PM Spec\n`,`## Vision\n\n${S.vision}\n`,`## Tech Stack\n\n${S.stack}\n`,`## Target Users\n\n${S.users}\n`,
     epic ? `## Epic: ${epic.title}\n\n${epic.description}\n` : '',
     S.stories.length ? `## User Stories\n\n${S.stories.map(s=>`- As a ${s.role}, I want to ${s.action} so that ${s.benefit}`).join('\n')}\n` : '',
-    S.tasks.length   ? `## Agent Tasks\n\n${S.tasks.map((t,i)=>`### Task ${i+1}: ${t.title}\n\n\`\`\`\n${t.agentPrompt}\n\`\`\``).join('\n\n')}` : '',
+    S.usecases.length ? `## Use Cases\n\n${S.usecases.map(u=>`- ${u.title} (actor: ${u.actor})`).join('\n')}\n` : '',
+    S.tasks.length    ? `## Agent Tasks\n\n${S.tasks.map((t,i)=>`### Task ${i+1}: ${t.title}\n\n\`\`\`\n${t.agentPrompt}\n\`\`\``).join('\n\n')}` : '',
   ].join('\n');
-  if (copyToClipboard(md)) ok('Full spec copied to clipboard ✓');
-  else fail('Clipboard unavailable.');
+  saveMarkdown('spec.md', md);
+  ok('pm-specs/spec.md updated — full spec saved');
+  dim('  Includes: vision · stack · users · epic · stories · use cases · tasks');
 }
 
 // ── Import ─────────────────────────────────────────────────────────
